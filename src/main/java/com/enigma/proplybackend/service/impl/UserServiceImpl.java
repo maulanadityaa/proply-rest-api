@@ -2,6 +2,7 @@ package com.enigma.proplybackend.service.impl;
 
 import com.enigma.proplybackend.model.entity.Division;
 import com.enigma.proplybackend.model.entity.User;
+import com.enigma.proplybackend.model.exception.ApplicationException;
 import com.enigma.proplybackend.model.request.UserRequest;
 import com.enigma.proplybackend.model.response.DivisionResponse;
 import com.enigma.proplybackend.model.response.UserCredentialResponse;
@@ -11,6 +12,7 @@ import com.enigma.proplybackend.service.DivisionService;
 import com.enigma.proplybackend.service.UserCredentialService;
 import com.enigma.proplybackend.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -37,65 +39,51 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserResponse updateUser(UserRequest userRequest) {
-        User user = userRepository.findById(userRequest.getId()).orElse(null);
+        User user = userRepository.findById(userRequest.getId()).orElseThrow(() -> new ApplicationException("User not found", "User with id=" + userRequest.getId() + " not found", HttpStatus.BAD_REQUEST));
 
-        try {
-            if (user != null) {
-                DivisionResponse divisionResponse = divisionService.getDivisionById(userRequest.getDivisionId());
-                UserCredentialResponse userCredentialResponse = userCredentialService.getByEmail(userRequest.getEmail());
+        DivisionResponse divisionResponse = divisionService.getDivisionById(userRequest.getDivisionId());
+        UserCredentialResponse userCredentialResponse = userCredentialService.getByEmail(userRequest.getEmail());
 
-                user.setFullName(userRequest.getFullName());
-                user.setBirthDate(userRequest.getBirthDate());
-                user.setGender(userRequest.getGender());
-                user.setMaritalStatus(userRequest.getMaritalStatus());
-                user.setDivision(Division.builder()
-                        .id(divisionResponse.getDivisionId())
-                        .name(divisionResponse.getName())
-                        .isActive(divisionResponse.getIsActive())
-                        .build());
-                user.setIsActive(true);
-                userRepository.save(user);
+        user.setFullName(userRequest.getFullName());
+        user.setBirthDate(userRequest.getBirthDate());
+        user.setGender(userRequest.getGender());
+        user.setMaritalStatus(userRequest.getMaritalStatus());
+        user.setDivision(Division.builder()
+                .id(divisionResponse.getDivisionId())
+                .name(divisionResponse.getName())
+                .isActive(divisionResponse.getIsActive())
+                .build());
+        user.setIsActive(true);
+        userRepository.save(user);
 
-                return toUserResponse(user, userCredentialResponse, divisionResponse);
-            }
-            return null;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
+        return toUserResponse(user, userCredentialResponse, divisionResponse);
     }
 
     @Override
     public void deleteUser(String userId) {
-        User user = userRepository.findById(userId).orElse(null);
+        User user = userRepository.findById(userId).orElseThrow(() -> new ApplicationException("User not found", "User with id=" + userId + " not found", HttpStatus.BAD_REQUEST));
 
-        try {
-            if (user != null) {
-                user.setIsActive(false);
-                userRepository.save(user);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        user.setIsActive(false);
+        userRepository.save(user);
     }
 
     @Override
     public UserResponse getUserById(String userId) {
-        User user = userRepository.findById(userId).orElse(null);
+        User user = userRepository.findById(userId).orElseThrow(() -> new ApplicationException("User not found", "User with id=" + userId + " not found", HttpStatus.BAD_REQUEST));
+
         UserCredentialResponse userCredentialResponse = userCredentialService.getByUserId(userId);
 
-        if (user != null) {
-            DivisionResponse divisionResponse = divisionService.getDivisionById(user.getDivision().getId());
+        DivisionResponse divisionResponse = divisionService.getDivisionById(user.getDivision().getId());
 
-            return toUserResponse(user, userCredentialResponse, divisionResponse);
-        }
-        return null;
+        return toUserResponse(user, userCredentialResponse, divisionResponse);
     }
 
     @Override
     public List<UserResponse> getAllUsers() {
         List<User> userList = userRepository.findAll();
         List<UserResponse> userResponseList = new ArrayList<>();
+
+        if (userList.isEmpty()) throw new ApplicationException("No users were found", null, HttpStatus.NOT_FOUND);
 
         for (User user : userList) {
             UserCredentialResponse userCredentialResponse = userCredentialService.getByUserId(user.getId());
@@ -111,6 +99,8 @@ public class UserServiceImpl implements UserService {
     public List<UserResponse> getAllUserWhereActive() {
         List<User> userList = userRepository.findAllByIsActiveIsTrue();
         List<UserResponse> userResponseList = new ArrayList<>();
+
+        if (userList.isEmpty()) throw new ApplicationException("No users were found", null, HttpStatus.NOT_FOUND);
 
         for (User user : userList) {
             UserCredentialResponse userCredentialResponse = userCredentialService.getByUserId(user.getId());

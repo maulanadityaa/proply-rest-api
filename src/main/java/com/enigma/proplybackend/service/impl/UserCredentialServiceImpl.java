@@ -2,13 +2,14 @@ package com.enigma.proplybackend.service.impl;
 
 import com.enigma.proplybackend.model.entity.AppUser;
 import com.enigma.proplybackend.model.entity.UserCredential;
+import com.enigma.proplybackend.model.exception.ApplicationException;
 import com.enigma.proplybackend.model.response.UserCredentialResponse;
 import com.enigma.proplybackend.model.response.UserResponse;
 import com.enigma.proplybackend.repository.UserCredentialRepository;
 import com.enigma.proplybackend.service.UserCredentialService;
 import com.enigma.proplybackend.service.UserService;
-import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -54,7 +55,7 @@ public class UserCredentialServiceImpl implements UserCredentialService {
 
     @Override
     public UserCredentialResponse getByEmail(String email) {
-        UserCredential userCredential = userCredentialRepository.findByEmail(email).orElse(null);
+        UserCredential userCredential = userCredentialRepository.findByEmail(email).orElseThrow(() -> new ApplicationException("User credential not found", "User credential with email=" + email + " not found", HttpStatus.NOT_FOUND));
 
         if (userCredential != null) {
             return UserCredentialResponse.builder()
@@ -67,7 +68,7 @@ public class UserCredentialServiceImpl implements UserCredentialService {
 
     @Override
     public UserCredentialResponse getByUserId(String userId) {
-        UserCredential userCredential = userCredentialRepository.findByUser_Id(userId).orElse(null);
+        UserCredential userCredential = userCredentialRepository.findByUser_Id(userId).orElseThrow(() -> new ApplicationException("User credential not found", "User credential with id=" + userId + " not found", HttpStatus.NOT_FOUND));
 
         if (userCredential != null) {
             return UserCredentialResponse.builder()

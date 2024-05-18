@@ -1,11 +1,13 @@
 package com.enigma.proplybackend.service.impl;
 
 import com.enigma.proplybackend.model.entity.Division;
+import com.enigma.proplybackend.model.exception.ApplicationException;
 import com.enigma.proplybackend.model.request.DivisionRequest;
 import com.enigma.proplybackend.model.response.DivisionResponse;
 import com.enigma.proplybackend.repository.DivisionRepository;
 import com.enigma.proplybackend.service.DivisionService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -24,8 +26,7 @@ public class DivisionServiceImpl implements DivisionService {
 
             return toDivisionResponse(division);
         } catch (Exception e) {
-            e.printStackTrace();
-            return null;
+            throw new ApplicationException("Cannot create division", e.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
 
@@ -42,38 +43,23 @@ public class DivisionServiceImpl implements DivisionService {
             }
             return null;
         } catch (Exception e) {
-            e.printStackTrace();
-            return null;
+            throw new ApplicationException("Cannot update division", e.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
 
     @Override
     public void deleteDivision(String divisionId) {
-        Division division = divisionRepository.findById(divisionId).orElse(null);
+        Division division = divisionRepository.findById(divisionId).orElseThrow(() -> new ApplicationException("Cannot find division", "Division with id=" + divisionId + " not found", HttpStatus.NOT_FOUND));
 
-        try {
-            if (division != null) {
-                division.setIsActive(false);
-                divisionRepository.save(division);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        division.setIsActive(false);
+        divisionRepository.save(division);
     }
 
     @Override
     public DivisionResponse getDivisionById(String divisionId) {
-        Division division = divisionRepository.findById(divisionId).orElse(null);
+        Division division = divisionRepository.findById(divisionId).orElseThrow(() -> new ApplicationException("Cannot find division", "Division with id=" + divisionId + " not found", HttpStatus.NOT_FOUND));
 
-        try {
-            if (division != null) {
-                return toDivisionResponse(division);
-            }
-            return null;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
+        return toDivisionResponse(division);
     }
 
     @Override
@@ -81,16 +67,13 @@ public class DivisionServiceImpl implements DivisionService {
         List<Division> divisionList = divisionRepository.findAll();
         List<DivisionResponse> divisionResponseList = new ArrayList<>();
 
-        try {
-            for (Division division : divisionList) {
-                divisionResponseList.add(toDivisionResponse(division));
-            }
+        if (divisionList.isEmpty()) throw new ApplicationException("No division found", null, HttpStatus.NOT_FOUND);
 
-            return divisionResponseList;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return List.of();
+        for (Division division : divisionList) {
+            divisionResponseList.add(toDivisionResponse(division));
         }
+
+        return divisionResponseList;
     }
 
     @Override
@@ -98,18 +81,15 @@ public class DivisionServiceImpl implements DivisionService {
         List<Division> divisionList = divisionRepository.findAll();
         List<DivisionResponse> divisionResponseList = new ArrayList<>();
 
-        try {
-            for (Division division : divisionList) {
-                if (division.getIsActive()) {
-                    divisionResponseList.add(toDivisionResponse(division));
-                }
-            }
+        if (divisionList.isEmpty()) throw new ApplicationException("No division found", null, HttpStatus.NOT_FOUND);
 
-            return divisionResponseList;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return List.of();
+        for (Division division : divisionList) {
+            if (division.getIsActive()) {
+                divisionResponseList.add(toDivisionResponse(division));
+            }
         }
+
+        return divisionResponseList;
     }
 
     private static DivisionResponse toDivisionResponse(Division division) {
