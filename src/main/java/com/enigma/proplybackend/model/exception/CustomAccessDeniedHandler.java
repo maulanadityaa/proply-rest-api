@@ -1,0 +1,25 @@
+package com.enigma.proplybackend.model.exception;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.web.access.AccessDeniedHandler;
+
+import java.io.IOException;
+
+public class CustomAccessDeniedHandler implements AccessDeniedHandler {
+
+//    @Override
+//    public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException accessDeniedException) throws IOException {
+////        response.sendError(HttpServletResponse.SC_FORBIDDEN, "You do not have permission to access this resource.");
+//        throw new ApplicationException("Access denied", "You do not have permission to access this resource", HttpStatus.FORBIDDEN);
+//    }
+
+    @Override
+    public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException accessDeniedException) throws IOException {
+        response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        response.getWriter().write("{\"error\": \"You do not have permission to access this resource.\"}");
+    }
+}
