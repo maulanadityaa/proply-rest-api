@@ -1,5 +1,6 @@
 package com.enigma.proplybackend.model.entity;
 
+import com.enigma.proplybackend.constant.DbPath;
 import com.enigma.proplybackend.constant.EGender;
 import com.enigma.proplybackend.constant.EMaritalStatus;
 import jakarta.persistence.Column;
@@ -27,7 +28,7 @@ import org.hibernate.annotations.CascadeType;
 @NoArgsConstructor
 @Builder(toBuilder = true)
 @Entity
-@Table(name = "mst_users")
+@Table(name = DbPath.USER_SCHEMA)
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

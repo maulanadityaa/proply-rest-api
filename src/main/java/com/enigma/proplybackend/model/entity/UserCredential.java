@@ -1,5 +1,6 @@
 package com.enigma.proplybackend.model.entity;
 
+import com.enigma.proplybackend.constant.DbPath;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -23,7 +24,7 @@ import org.hibernate.annotations.CascadeType;
 @NoArgsConstructor
 @Builder(toBuilder = true)
 @Entity
-@Table(name = "mst_user_credentials")
+@Table(name = DbPath.USER_CREDENTIAL_SCHEMA)
 public class UserCredential {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

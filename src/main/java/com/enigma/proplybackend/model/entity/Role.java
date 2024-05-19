@@ -1,5 +1,6 @@
 package com.enigma.proplybackend.model.entity;
 
+import com.enigma.proplybackend.constant.DbPath;
 import com.enigma.proplybackend.constant.ERole;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
@@ -24,7 +25,7 @@ import java.util.List;
 @NoArgsConstructor
 @Builder(toBuilder = true)
 @Entity
-@Table(name = "mst_roles")
+@Table(name = DbPath.ROLE_SCHEMA)
 public class Role {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

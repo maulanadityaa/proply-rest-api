@@ -1,5 +1,6 @@
 package com.enigma.proplybackend.model.entity;
 
+import com.enigma.proplybackend.constant.DbPath;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -22,7 +23,7 @@ import java.util.List;
 @NoArgsConstructor
 @Builder(toBuilder = true)
 @Entity
-@Table(name = "mst_divisions")
+@Table(name = DbPath.DIVISION_SCHEMA)
 public class Division {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)

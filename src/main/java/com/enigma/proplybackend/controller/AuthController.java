@@ -1,5 +1,6 @@
 package com.enigma.proplybackend.controller;
 
+import com.enigma.proplybackend.constant.AppPath;
 import com.enigma.proplybackend.model.request.AuthRequest;
 import com.enigma.proplybackend.model.response.CommonResponse;
 import com.enigma.proplybackend.model.response.LoginResponse;
@@ -14,12 +15,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/v1/auth")
+@RequestMapping(AppPath.AUTH)
 @RequiredArgsConstructor
 public class AuthController {
     private final AuthService authService;
 
-    @PostMapping("/register/admin")
+    @PostMapping(AppPath.REGISTER_ADMIN)
     public ResponseEntity<?> registerAdmin(@RequestBody AuthRequest authRequest) {
         RegisterResponse registerResponse = authService.registerAdmin(authRequest);
 
@@ -32,7 +33,7 @@ public class AuthController {
                 );
     }
 
-    @PostMapping("/register/employee")
+    @PostMapping(AppPath.REGISTER_EMPLOYEE)
     public ResponseEntity<?> registerEmployee(@RequestBody AuthRequest authRequest) {
         RegisterResponse registerResponse = authService.registerEmployee(authRequest);
 
@@ -45,7 +46,7 @@ public class AuthController {
                 );
     }
 
-    @PostMapping("/login")
+    @PostMapping(AppPath.LOGIN)
     public ResponseEntity<?> login(@RequestBody AuthRequest authRequest) {
         LoginResponse loginResponse = authService.login(authRequest);
 
