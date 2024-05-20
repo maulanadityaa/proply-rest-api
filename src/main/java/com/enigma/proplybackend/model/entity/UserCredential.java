@@ -42,7 +42,6 @@ public class UserCredential {
     private Role role;
 
     @OneToOne
-    @Cascade(CascadeType.MERGE)
     @JoinColumn(name = "user_id")
     private User user;
 }

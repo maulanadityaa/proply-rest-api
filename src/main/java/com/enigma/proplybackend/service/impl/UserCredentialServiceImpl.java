@@ -54,16 +54,8 @@ public class UserCredentialServiceImpl implements UserCredentialService {
     }
 
     @Override
-    public UserCredentialResponse getByEmail(String email) {
-        UserCredential userCredential = userCredentialRepository.findByEmail(email).orElseThrow(() -> new ApplicationException("User credential not found", "User credential with email=" + email + " not found", HttpStatus.NOT_FOUND));
-
-        if (userCredential != null) {
-            return UserCredentialResponse.builder()
-                    .email(userCredential.getEmail())
-                    .role(userCredential.getRole().getName())
-                    .build();
-        }
-        return null;
+    public UserCredential getByEmail(String email) {
+        return userCredentialRepository.findByEmail(email).orElseThrow(() -> new ApplicationException("User credential not found", "User credential with email=" + email + " not found", HttpStatus.NOT_FOUND));
     }
 
     @Override
