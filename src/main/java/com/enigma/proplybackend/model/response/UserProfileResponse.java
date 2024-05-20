@@ -11,5 +11,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class UserProfileResponse {
     private String imageUrl;
-    private UserResponse userResponse;
+//    private UserResponse userResponse;
 }

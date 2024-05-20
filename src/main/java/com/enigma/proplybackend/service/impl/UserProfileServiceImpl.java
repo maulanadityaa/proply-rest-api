@@ -11,7 +11,7 @@ import com.enigma.proplybackend.repository.UserProfileRepository;
 import com.enigma.proplybackend.service.CloudinaryService;
 import com.enigma.proplybackend.service.UserProfileService;
 import com.enigma.proplybackend.service.UserService;
-import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -19,11 +19,17 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 
 @Service
-@RequiredArgsConstructor
+//@RequiredArgsConstructor
 public class UserProfileServiceImpl implements UserProfileService {
     private final CloudinaryService cloudinaryService;
     private final UserProfileRepository userProfileRepository;
     private final UserService userService;
+
+    public UserProfileServiceImpl(CloudinaryService cloudinaryService, UserProfileRepository userProfileRepository, @Lazy UserService userService) {
+        this.cloudinaryService = cloudinaryService;
+        this.userProfileRepository = userProfileRepository;
+        this.userService = userService;
+    }
 
     @Override
     public UserProfileResponse uploadImage(UserProfileRequest userProfileRequest) {
@@ -83,11 +89,23 @@ public class UserProfileServiceImpl implements UserProfileService {
 
             return UserProfileResponse.builder()
                     .imageUrl(userProfile.getImageUrl())
-                    .userResponse(userResponse)
+//                    .userResponse(userResponse)
                     .build();
         } catch (DataIntegrityViolationException e) {
             e.printStackTrace();
             return null;
         }
+    }
+
+    @Override
+    public UserProfileResponse getByUserId(String userId) {
+        UserProfile userProfile = userProfileRepository.findByUser_Id(userId).orElse(null);
+
+        if (userProfile != null) {
+            return UserProfileResponse.builder()
+                    .imageUrl(userProfile.getImageUrl())
+                    .build();
+        }
+        return null;
     }
 }

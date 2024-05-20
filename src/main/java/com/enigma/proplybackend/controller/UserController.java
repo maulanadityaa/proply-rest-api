@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -81,7 +82,7 @@ public class UserController {
 
     @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_EMPLOYEE')")
     @PutMapping
-    public ResponseEntity<?> updateUser(@RequestBody UserRequest userRequest) {
+    public ResponseEntity<?> updateUser(@ModelAttribute UserRequest userRequest) {
         UserResponse userResponse = userService.updateUser(userRequest);
 
         return ResponseEntity.status(HttpStatus.OK)
