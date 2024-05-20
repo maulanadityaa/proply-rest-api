@@ -1,9 +1,7 @@
 package com.enigma.proplybackend.service.impl;
 
-import com.enigma.proplybackend.constant.EGender;
 import com.enigma.proplybackend.constant.ERole;
 import com.enigma.proplybackend.model.entity.AppUser;
-import com.enigma.proplybackend.model.entity.Division;
 import com.enigma.proplybackend.model.entity.Role;
 import com.enigma.proplybackend.model.entity.User;
 import com.enigma.proplybackend.model.entity.UserCredential;
@@ -11,7 +9,6 @@ import com.enigma.proplybackend.model.request.AuthRequest;
 import com.enigma.proplybackend.model.request.UserRequest;
 import com.enigma.proplybackend.model.response.LoginResponse;
 import com.enigma.proplybackend.model.response.RegisterResponse;
-import com.enigma.proplybackend.model.response.UserResponse;
 import com.enigma.proplybackend.repository.UserCredentialRepository;
 import com.enigma.proplybackend.security.JwtUtil;
 import com.enigma.proplybackend.service.AuthService;
@@ -49,24 +46,13 @@ public class AuthServiceImpl implements AuthService {
                     .maritalStatus(authRequest.getMaritalStatus())
                     .divisionId(authRequest.getDivisionId())
                     .build();
-            UserResponse userResponse = userService.addUser(userRequest);
+            User user = userService.addUser(userRequest);
 
             UserCredential userCredential = UserCredential.builder()
                     .email(authRequest.getEmail())
                     .password(passwordEncoder.encode(authRequest.getPassword()))
                     .role(role)
-                    .user(User.builder()
-                            .id(userResponse.getUserId())
-                            .fullName(userResponse.getFullName())
-                            .birthDate(userResponse.getBirthDate())
-                            .gender(userResponse.getGender())
-                            .maritalStatus(userResponse.getMaritalStatus())
-                            .division(Division.builder()
-                                    .id(userResponse.getDivisionResponse().getDivisionId())
-                                    .name(userResponse.getDivisionResponse().getName())
-                                    .build())
-                            .isActive(true)
-                            .build())
+                    .user(user)
                     .build();
             userCredentialRepository.save(userCredential);
 
@@ -76,9 +62,7 @@ public class AuthServiceImpl implements AuthService {
                     .role(role.getName().name())
                     .build();
         } catch (DataIntegrityViolationException e) {
-//            throw new DataIntegrityViolationException("Admin already exist!");
-            e.printStackTrace();
-            return null;
+            throw new DataIntegrityViolationException("Admin already exist!");
         }
     }
 
@@ -86,7 +70,7 @@ public class AuthServiceImpl implements AuthService {
     public RegisterResponse registerEmployee(AuthRequest authRequest) {
         try {
             Role role = roleService.getOrSave(ERole.ROLE_EMPLOYEE);
-
+//
             UserRequest userRequest = UserRequest.builder()
                     .fullName(authRequest.getFullName())
                     .birthDate(authRequest.getBirthDate())
@@ -95,24 +79,13 @@ public class AuthServiceImpl implements AuthService {
                     .maritalStatus(authRequest.getMaritalStatus())
                     .divisionId(authRequest.getDivisionId())
                     .build();
-            UserResponse userResponse = userService.addUser(userRequest);
+            User user = userService.addUser(userRequest);
 
             UserCredential userCredential = UserCredential.builder()
                     .email(authRequest.getEmail())
                     .password(passwordEncoder.encode(authRequest.getPassword()))
                     .role(role)
-                    .user(User.builder()
-                            .id(userResponse.getUserId())
-                            .fullName(userResponse.getFullName())
-                            .birthDate(userResponse.getBirthDate())
-                            .gender(userResponse.getGender())
-                            .maritalStatus(userResponse.getMaritalStatus())
-                            .division(Division.builder()
-                                    .id(userResponse.getDivisionResponse().getDivisionId())
-                                    .name(userResponse.getDivisionResponse().getName())
-                                    .build())
-                            .isActive(true)
-                            .build())
+                    .user(user)
                     .build();
             userCredentialRepository.save(userCredential);
 

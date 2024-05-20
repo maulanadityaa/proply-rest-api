@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserCredentialResponse {
+    private String userCredentialId;
     private String email;
     private ERole role;
 }

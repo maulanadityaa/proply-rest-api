@@ -1,7 +1,9 @@
 package com.enigma.proplybackend.service.impl;
 
 import com.enigma.proplybackend.model.entity.Division;
+import com.enigma.proplybackend.model.entity.Role;
 import com.enigma.proplybackend.model.entity.User;
+import com.enigma.proplybackend.model.entity.UserCredential;
 import com.enigma.proplybackend.model.exception.ApplicationException;
 import com.enigma.proplybackend.model.request.UserRequest;
 import com.enigma.proplybackend.model.response.DivisionResponse;
@@ -26,14 +28,16 @@ public class UserServiceImpl implements UserService {
     private final UserCredentialService userCredentialService;
 
     @Override
-    public UserResponse addUser(UserRequest userRequest) {
+    public User addUser(UserRequest userRequest) {
         DivisionResponse divisionResponse = divisionService.getDivisionById(userRequest.getDivisionId());
-        UserCredentialResponse userCredentialResponse = userCredentialService.getByEmail(userRequest.getEmail());
+
+        if (!divisionResponse.getIsActive())
+            throw new ApplicationException("Division is not active", divisionResponse.getName() + " is not active", HttpStatus.BAD_REQUEST);
 
         User user = toUser(userRequest, divisionResponse);
         userRepository.save(user);
 
-        return toUserResponse(user, userCredentialResponse, divisionResponse);
+        return user;
     }
 
 
@@ -42,21 +46,13 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(userRequest.getId()).orElseThrow(() -> new ApplicationException("User not found", "User with id=" + userRequest.getId() + " not found", HttpStatus.BAD_REQUEST));
 
         DivisionResponse divisionResponse = divisionService.getDivisionById(userRequest.getDivisionId());
-        UserCredentialResponse userCredentialResponse = userCredentialService.getByEmail(userRequest.getEmail());
+        UserCredential userCredential = userCredentialService.getByEmail(userRequest.getEmail());
 
-        user.setFullName(userRequest.getFullName());
-        user.setBirthDate(userRequest.getBirthDate());
-        user.setGender(userRequest.getGender());
-        user.setMaritalStatus(userRequest.getMaritalStatus());
-        user.setDivision(Division.builder()
-                .id(divisionResponse.getDivisionId())
-                .name(divisionResponse.getName())
-                .isActive(divisionResponse.getIsActive())
-                .build());
-        user.setIsActive(true);
-        userRepository.save(user);
+        User foundUser = toUser(userRequest, divisionResponse);
+        foundUser.setId(userRequest.getId());
+        userRepository.save(foundUser);
 
-        return toUserResponse(user, userCredentialResponse, divisionResponse);
+        return toUserResponse(user, userCredential, divisionResponse);
     }
 
     @Override
@@ -72,10 +68,25 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(userId).orElseThrow(() -> new ApplicationException("User not found", "User with id=" + userId + " not found", HttpStatus.BAD_REQUEST));
 
         UserCredentialResponse userCredentialResponse = userCredentialService.getByUserId(userId);
+        UserCredential userCredential = UserCredential.builder()
+                .email(userCredentialResponse.getEmail())
+                .role(Role.builder()
+                        .name(userCredentialResponse.getRole())
+                        .build())
+                .build();
 
         DivisionResponse divisionResponse = divisionService.getDivisionById(user.getDivision().getId());
 
-        return toUserResponse(user, userCredentialResponse, divisionResponse);
+        return toUserResponse(user, userCredential, divisionResponse);
+    }
+
+    @Override
+    public UserResponse getUserByEmail(String userEmail) {
+        UserCredential userCredential = userCredentialService.getByEmail(userEmail);
+        User user = userRepository.findById(userCredential.getUser().getId()).orElseThrow(() -> new ApplicationException("User not found", "User with email=" + userEmail + " not found", HttpStatus.NOT_FOUND));
+        DivisionResponse divisionResponse = divisionService.getDivisionById(user.getDivision().getId());
+
+        return toUserResponse(user, userCredential, divisionResponse);
     }
 
     @Override
@@ -87,9 +98,15 @@ public class UserServiceImpl implements UserService {
 
         for (User user : userList) {
             UserCredentialResponse userCredentialResponse = userCredentialService.getByUserId(user.getId());
+            UserCredential userCredential = UserCredential.builder()
+                    .email(userCredentialResponse.getEmail())
+                    .role(Role.builder()
+                            .name(userCredentialResponse.getRole())
+                            .build())
+                    .build();
             DivisionResponse divisionResponse = divisionService.getDivisionById(user.getDivision().getId());
 
-            userResponseList.add(toUserResponse(user, userCredentialResponse, divisionResponse));
+            userResponseList.add(toUserResponse(user, userCredential, divisionResponse));
         }
 
         return userResponseList;
@@ -104,22 +121,33 @@ public class UserServiceImpl implements UserService {
 
         for (User user : userList) {
             UserCredentialResponse userCredentialResponse = userCredentialService.getByUserId(user.getId());
+            UserCredential userCredential = UserCredential.builder()
+                    .email(userCredentialResponse.getEmail())
+                    .role(Role.builder()
+                            .name(userCredentialResponse.getRole())
+                            .build())
+                    .build();
             DivisionResponse divisionResponse = divisionService.getDivisionById(user.getDivision().getId());
 
-            userResponseList.add(toUserResponse(user, userCredentialResponse, divisionResponse));
+            userResponseList.add(toUserResponse(user, userCredential, divisionResponse));
         }
 
         return userResponseList;
     }
 
-    private static UserResponse toUserResponse(User user, UserCredentialResponse userCredentialResponse, DivisionResponse divisionResponse) {
+    private static UserResponse toUserResponse(User user, UserCredential userCredential, DivisionResponse divisionResponse) {
         return UserResponse.builder()
                 .userId(user.getId())
                 .fullName(user.getFullName())
                 .birthDate(user.getBirthDate())
+                .gender(user.getGender())
                 .maritalStatus(user.getMaritalStatus())
-                .userCredentialResponse(userCredentialResponse)
+                .userCredentialResponse(UserCredentialResponse.builder()
+                        .email(userCredential.getEmail())
+                        .role(userCredential.getRole().getName())
+                        .build())
                 .divisionResponse(divisionResponse)
+                .isActive(user.getIsActive())
                 .build();
     }
 

@@ -35,6 +35,6 @@ public class Division {
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
 
-    @OneToMany(mappedBy = "division", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "division", cascade = CascadeType.ALL)
     List<User> users;
 }

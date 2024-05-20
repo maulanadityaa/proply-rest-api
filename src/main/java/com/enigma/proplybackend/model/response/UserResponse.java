@@ -19,4 +19,5 @@ public class UserResponse {
     private EMaritalStatus maritalStatus;
     private UserCredentialResponse userCredentialResponse;
     private DivisionResponse divisionResponse;
+    private Boolean isActive;
 }
