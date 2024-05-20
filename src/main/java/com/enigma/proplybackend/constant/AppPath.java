@@ -8,6 +8,7 @@ public class AppPath {
     public static final String LOGIN = "/login";
     public static final String DIVISIONS = API + "/divisions";
     public static final String USERS = API + "/users";
+    public static final String USER_PROFILES = API + "/user-profiles";
     public static final String ITEM_CATEGORY = API + "/item-categories";
     public static final String ACTIVE_STATUS = "/active";
     public static final String GET_BY_ID = "/{id}";

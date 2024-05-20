@@ -64,6 +64,7 @@ public class UserCredentialServiceImpl implements UserCredentialService {
 
         if (userCredential != null) {
             return UserCredentialResponse.builder()
+                    .userCredentialId(userCredential.getId())
                     .email(userCredential.getEmail())
                     .role(userCredential.getRole().getName())
                     .build();

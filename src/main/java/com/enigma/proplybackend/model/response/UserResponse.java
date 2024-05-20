@@ -17,6 +17,7 @@ public class UserResponse {
     private Long birthDate;
     private EGender gender;
     private EMaritalStatus maritalStatus;
+    private String profileImageUrl;
     private UserCredentialResponse userCredentialResponse;
     private DivisionResponse divisionResponse;
     private Boolean isActive;
