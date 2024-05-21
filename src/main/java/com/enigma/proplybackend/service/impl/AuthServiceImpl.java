@@ -8,12 +8,14 @@ import com.enigma.proplybackend.model.entity.UserCredential;
 import com.enigma.proplybackend.model.exception.ApplicationException;
 import com.enigma.proplybackend.model.request.AuthRequest;
 import com.enigma.proplybackend.model.request.UserRequest;
+import com.enigma.proplybackend.model.response.DivisionResponse;
 import com.enigma.proplybackend.model.response.LoginResponse;
 import com.enigma.proplybackend.model.response.RegisterResponse;
 import com.enigma.proplybackend.model.response.UserResponse;
 import com.enigma.proplybackend.repository.UserCredentialRepository;
 import com.enigma.proplybackend.security.JwtUtil;
 import com.enigma.proplybackend.service.AuthService;
+import com.enigma.proplybackend.service.DivisionService;
 import com.enigma.proplybackend.service.RoleService;
 import com.enigma.proplybackend.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -37,6 +39,7 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final RoleService roleService;
     private final AuthenticationManager authenticationManager;
+    private final DivisionService divisionService;
     private final JwtUtil jwtUtil;
 
     @Override
@@ -60,12 +63,13 @@ public class AuthServiceImpl implements AuthService {
             String userId = userInfo.get("userId");
             UserCredential userCredential = userCredentialRepository.findById(userId).orElseThrow(() -> new UsernameNotFoundException("Invalid credentials"));
             UserResponse userResponse = userService.getUserById(userCredential.getUser().getId());
+            DivisionResponse divisionResponse = divisionService.getDivisionById(authRequest.getDivisionId());
 
             if (authRequest.getDivisionId().equals(userResponse.getDivisionResponse().getDivisionId())) {
                 return getRegisterResponse(authRequest, role);
             }
 
-            throw new ApplicationException("Cannot register employee", "Only admin or manager with same division=" + userResponse.getDivisionResponse().getName() + " can add this employee to the correspondent division", HttpStatus.BAD_REQUEST);
+            throw new ApplicationException("Cannot register employee", "Only admin or manager with same division=" + divisionResponse.getName() + " can add this employee to the correspondent division", HttpStatus.BAD_REQUEST);
         } catch (DataIntegrityViolationException e) {
             throw new DataIntegrityViolationException("Employee already exist!");
         }
