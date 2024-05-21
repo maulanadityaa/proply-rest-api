@@ -5,6 +5,7 @@ public class AppPath {
     public static final String AUTH = API + "/auth";
     public static final String REGISTER_ADMIN = "/register/admin";
     public static final String REGISTER_EMPLOYEE = "/register/employee";
+    public static final String REGISTER_MANAGER = "/register/manager";
     public static final String LOGIN = "/login";
     public static final String DIVISIONS = API + "/divisions";
     public static final String USERS = API + "/users";

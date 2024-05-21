@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -34,10 +35,24 @@ public class AuthController {
                 );
     }
 
-    @PostMapping(AppPath.REGISTER_EMPLOYEE)
+    @PostMapping(AppPath.REGISTER_MANAGER)
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<?> registerEmployee(@RequestBody AuthRequest authRequest) {
-        RegisterResponse registerResponse = authService.registerEmployee(authRequest);
+    public ResponseEntity<?> registerManager(@RequestBody AuthRequest authRequest) {
+        RegisterResponse registerResponse = authService.registerManager(authRequest);
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(CommonResponse.<RegisterResponse>builder()
+                        .statusCode(HttpStatus.CREATED.value())
+                        .message("Manager registered successfully")
+                        .data(registerResponse)
+                        .build()
+                );
+    }
+
+    @PostMapping(AppPath.REGISTER_EMPLOYEE)
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_EMPLOYEE')")
+    public ResponseEntity<?> registerEmployee(@RequestBody AuthRequest authRequest, @RequestHeader("Authorization") String authorization) {
+        RegisterResponse registerResponse = authService.registerEmployee(authRequest, authorization);
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(CommonResponse.<RegisterResponse>builder()

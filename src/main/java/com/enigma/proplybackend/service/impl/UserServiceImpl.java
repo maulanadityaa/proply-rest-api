@@ -163,7 +163,7 @@ public class UserServiceImpl implements UserService {
                 .birthDate(user.getBirthDate())
                 .gender(user.getGender())
                 .maritalStatus(user.getMaritalStatus())
-                .profileImageUrl(userProfileResponse.getImageUrl())
+                .profileImageUrl(userProfileResponse != null ? userProfileResponse.getImageUrl() : null)
                 .userCredentialResponse(UserCredentialResponse.builder()
                         .userCredentialId(userCredential.getId())
                         .email(userCredential.getEmail())
