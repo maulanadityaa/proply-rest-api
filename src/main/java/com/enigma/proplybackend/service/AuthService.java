@@ -7,7 +7,9 @@ import com.enigma.proplybackend.model.response.RegisterResponse;
 public interface AuthService {
     RegisterResponse registerAdmin(AuthRequest authRequest);
 
-    RegisterResponse registerEmployee(AuthRequest authRequest);
+    RegisterResponse registerEmployee(AuthRequest authRequest, String authorization);
+
+    RegisterResponse registerManager(AuthRequest authRequest);
 
     LoginResponse login(AuthRequest authRequest);
 }
