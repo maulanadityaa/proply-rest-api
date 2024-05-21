@@ -11,6 +11,7 @@ public class AppPath {
     public static final String USERS = API + "/users";
     public static final String USER_PROFILES = API + "/user-profiles";
     public static final String ITEM_CATEGORY = API + "/item-categories";
+    public static final String ITEM = API + "/items";
     public static final String ACTIVE_STATUS = "/active";
     public static final String GET_BY_ID = "/{id}";
     public static final String GET_BY_EMAIL = "/email";
