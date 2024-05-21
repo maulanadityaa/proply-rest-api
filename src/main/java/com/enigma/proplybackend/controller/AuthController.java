@@ -50,7 +50,7 @@ public class AuthController {
     }
 
     @PostMapping(AppPath.REGISTER_EMPLOYEE)
-    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_EMPLOYEE')")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER')")
     public ResponseEntity<?> registerEmployee(@RequestBody AuthRequest authRequest, @RequestHeader("Authorization") String authorization) {
         RegisterResponse registerResponse = authService.registerEmployee(authRequest, authorization);
 
