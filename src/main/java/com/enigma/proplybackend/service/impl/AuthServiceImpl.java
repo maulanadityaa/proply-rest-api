@@ -49,7 +49,7 @@ public class AuthServiceImpl implements AuthService {
 
             return getRegisterResponse(authRequest, role);
         } catch (DataIntegrityViolationException e) {
-            throw new DataIntegrityViolationException("Admin already exist!");
+            throw new ApplicationException("Data request conflict", "Admin already exists", HttpStatus.CONFLICT);
         }
     }
 
@@ -71,7 +71,7 @@ public class AuthServiceImpl implements AuthService {
 
             throw new ApplicationException("Cannot register employee", "Only admin or manager with same division=" + divisionResponse.getName() + " can add this employee to the correspondent division", HttpStatus.BAD_REQUEST);
         } catch (DataIntegrityViolationException e) {
-            throw new DataIntegrityViolationException("Employee already exist!");
+            throw new ApplicationException("Data request conflict", "Employee already exists", HttpStatus.CONFLICT);
         }
     }
 
@@ -82,7 +82,7 @@ public class AuthServiceImpl implements AuthService {
 //
             return getRegisterResponse(authRequest, role);
         } catch (DataIntegrityViolationException e) {
-            throw new DataIntegrityViolationException("Manager already exist!");
+            throw new ApplicationException("Data request conflict", "Manager already exists", HttpStatus.CONFLICT);
         }
     }
 

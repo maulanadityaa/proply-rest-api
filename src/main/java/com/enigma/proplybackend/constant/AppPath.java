@@ -14,8 +14,12 @@ public class AppPath {
     public static final String ITEM = API + "/items";
     public static final String PROCUREMENT_CATEGORY = API + "/procurement-categories";
     public static final String PROCUREMENT = API + "/procurements";
+    public static final String APPROVE_PROCUREMENT = "/approve";
+    public static final String REJECT_PROCUREMENT = "/reject";
+    public static final String CANCEL_PROCUREMENT = "/cancel";
     public static final String ACTIVE_STATUS = "/active";
     public static final String GET_BY_ID = "/{id}";
     public static final String GET_BY_EMAIL = "/email";
+    public static final String GET_BY_USER_ID = "/search";
     public static final String DELETE_BY_ID = "/delete/{id}";
 }
