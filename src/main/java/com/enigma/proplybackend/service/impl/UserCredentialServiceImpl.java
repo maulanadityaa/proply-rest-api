@@ -60,7 +60,7 @@ public class UserCredentialServiceImpl implements UserCredentialService {
 
     @Override
     public UserCredentialResponse getByUserId(String userId) {
-        UserCredential userCredential = userCredentialRepository.findByUser_Id(userId).orElseThrow(() -> new ApplicationException("User credential not found", "User credential with id=" + userId + " not found", HttpStatus.NOT_FOUND));
+        UserCredential userCredential = userCredentialRepository.findByUser_Id(userId).orElseThrow(() -> new ApplicationException("User credential not found", "User credential with user_id=" + userId + " not found", HttpStatus.NOT_FOUND));
 
         if (userCredential != null) {
             return UserCredentialResponse.builder()
