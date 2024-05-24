@@ -37,6 +37,15 @@ public class ProcurementDetail {
     @Column(name = "quantity", nullable = false)
     private Integer quantity;
 
+    @Column(name = "approved_at")
+    private Long approvedAt;
+
+    @Column(name = "approved_by")
+    private String approvedBy;
+
+    @Column(name = "notes", nullable = true)
+    private String notes;
+
     @ManyToOne
     @JoinColumn(name = "procurement_id")
     private Procurement procurement;
