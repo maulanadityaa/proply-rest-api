@@ -22,6 +22,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -88,19 +89,23 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public LoginResponse login(AuthRequest authRequest) {
-        Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
-                authRequest.getEmail(),
-                authRequest.getPassword()
-        ));
+        try {
+            Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
+                    authRequest.getEmail(),
+                    authRequest.getPassword()
+            ));
 
-        SecurityContextHolder.getContext().setAuthentication(authentication);
+            SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        AppUser appUser = (AppUser) authentication.getPrincipal();
-        String token = jwtUtil.generateToken(appUser);
+            AppUser appUser = (AppUser) authentication.getPrincipal();
+            String token = jwtUtil.generateToken(appUser);
 
-        return LoginResponse.builder()
-                .token(token)
-                .build();
+            return LoginResponse.builder()
+                    .token(token)
+                    .build();
+        } catch (BadCredentialsException e) {
+            throw new ApplicationException("Invalid credentials", "Email or password incorrect", HttpStatus.UNAUTHORIZED);
+        }
     }
 
     private RegisterResponse getRegisterResponse(AuthRequest authRequest, Role role) {
