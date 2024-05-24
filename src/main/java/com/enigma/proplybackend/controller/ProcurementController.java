@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -30,6 +31,7 @@ import java.util.List;
 public class ProcurementController {
     private final ProcurementService procurementService;
 
+    @PreAuthorize("hasRole('ROLE_EMPLOYEE')")
     @PostMapping
     public ResponseEntity<?> createNewProcurement(@RequestBody ProcurementRequest procurementRequest) {
         ProcurementResponse procurementResponse = procurementService.addProcurement(procurementRequest);
@@ -43,6 +45,7 @@ public class ProcurementController {
                 );
     }
 
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER')")
     @PutMapping(AppPath.APPROVE_PROCUREMENT)
     public ResponseEntity<?> approveProcurement(@RequestBody ProcurementDetailRequest procurementDetailRequest, @RequestHeader("Authorization") String authorization) {
         ProcurementResponse procurementResponse = procurementService.approveProcurement(procurementDetailRequest, authorization);
@@ -56,6 +59,7 @@ public class ProcurementController {
                 );
     }
 
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER')")
     @PutMapping(AppPath.REJECT_PROCUREMENT)
     public ResponseEntity<?> rejectProcurement(@RequestBody ProcurementDetailRequest procurementDetailRequest, @RequestHeader("Authorization") String authorization) {
         ProcurementResponse procurementResponse = procurementService.rejectProcurement(procurementDetailRequest, authorization);
@@ -69,6 +73,7 @@ public class ProcurementController {
                 );
     }
 
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_EMPLOYEE')")
     @PutMapping(AppPath.CANCEL_PROCUREMENT)
     public ResponseEntity<?> cancelProcurement(@RequestBody ProcurementDetailRequest procurementDetailRequest) {
         ProcurementResponse procurementResponse = procurementService.cancelProcurement(procurementDetailRequest);
@@ -82,6 +87,7 @@ public class ProcurementController {
                 );
     }
 
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER')")
     @GetMapping
     public ResponseEntity<?> getAllProcurements() {
         List<ProcurementResponse> procurementResponses = procurementService.getAllProcurements();
@@ -95,7 +101,8 @@ public class ProcurementController {
                 );
     }
 
-    @GetMapping("/page")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER')")
+    @GetMapping(AppPath.GET_WITH_PAGE)
     public ResponseEntity<?> getAllByNameOrCategory(
             @RequestParam(name = "name", required = false) String name,
             @RequestParam(name = "category", required = false) String category,
@@ -117,6 +124,7 @@ public class ProcurementController {
                         .build());
     }
 
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER', 'ROLE_EMPLOYEE')")
     @GetMapping(AppPath.GET_BY_USER_ID)
     public ResponseEntity<?> getProcurementsByUserId(@RequestParam(name = "user-id", required = false) String userId) {
         List<ProcurementResponse> procurementResponses = procurementService.getAllProcurementsByUserId(userId);
@@ -130,6 +138,7 @@ public class ProcurementController {
                 );
     }
 
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER', 'ROLE_EMPLOYEE')")
     @GetMapping(AppPath.GET_BY_ID)
     public ResponseEntity<?> getProcurementById(@PathVariable String id) {
         ProcurementResponse procurementResponses = procurementService.getProcurementById(id);
