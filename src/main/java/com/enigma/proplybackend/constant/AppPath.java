@@ -20,6 +20,7 @@ public class AppPath {
     public static final String ACTIVE_STATUS = "/active";
     public static final String GET_BY_ID = "/{id}";
     public static final String GET_BY_EMAIL = "/email";
+    public static final String GET_WITH_PAGE = "/page";
     public static final String GET_BY_USER_ID = "/search";
     public static final String DELETE_BY_ID = "/delete/{id}";
 }
