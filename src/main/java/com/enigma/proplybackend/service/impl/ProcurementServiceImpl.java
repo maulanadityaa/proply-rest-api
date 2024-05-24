@@ -152,7 +152,7 @@ public class ProcurementServiceImpl implements ProcurementService {
 
                     UserResponse userApprovalResponse = null;
 
-                    if (procurementDetail.getId().equals(procurementDetailRequest.getId())) {
+                    if (procurementDetail.getId().equals(procurementDetailRequest.getProcurementDetailId())) {
                         Map<String, String> userInfo = jwtUtil.getUserInfoByToken(authorization.substring(7));
 
                         String email = userInfo.get("email");
@@ -197,8 +197,8 @@ public class ProcurementServiceImpl implements ProcurementService {
 
                     ProcurementDetail existProcurementDetail = procurementDetailService.getProcurementDetailById(procurementDetail.getId());
 
-                    if (procurementDetail.getId().equals(procurementDetailRequest.getId())) {
-                        existProcurementDetail.setNotes(procurementDetail.getNotes());
+                    if (procurementDetail.getId().equals(procurementDetailRequest.getProcurementDetailId())) {
+                        existProcurementDetail.setNotes(procurementDetailRequest.getNotes());
                         existProcurementDetail = procurementDetailService.updateStatusProcurementDetail(procurementDetail.getId(), EProcurementStatus.REJECTED);
 
                         procurementDetailService.addProcurementDetail(existProcurementDetail);
@@ -234,7 +234,7 @@ public class ProcurementServiceImpl implements ProcurementService {
 
                     ProcurementDetail existProcurementDetail = procurementDetailService.getProcurementDetailById(procurementDetail.getId());
 
-                    if (procurementDetail.getId().equals(procurementDetailRequest.getId())) {
+                    if (procurementDetail.getId().equals(procurementDetailRequest.getProcurementDetailId())) {
                         existProcurementDetail = procurementDetailService.updateStatusProcurementDetail(procurementDetail.getId(), EProcurementStatus.CANCELED);
                     }
 

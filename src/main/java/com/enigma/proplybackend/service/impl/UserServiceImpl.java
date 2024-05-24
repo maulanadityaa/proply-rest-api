@@ -114,18 +114,7 @@ public class UserServiceImpl implements UserService {
         if (userList.isEmpty()) throw new ApplicationException("No users were found", null, HttpStatus.NOT_FOUND);
 
         for (User user : userList) {
-            UserCredentialResponse userCredentialResponse = userCredentialService.getByUserId(user.getId());
-            UserCredential userCredential = UserCredential.builder()
-                    .id(userCredentialResponse.getUserCredentialId())
-                    .email(userCredentialResponse.getEmail())
-                    .role(Role.builder()
-                            .name(userCredentialResponse.getRole())
-                            .build())
-                    .build();
-            DivisionResponse divisionResponse = divisionService.getDivisionById(user.getDivision().getId());
-            UserProfileResponse userProfileResponse = userProfileService.getByUserId(user.getId());
-
-            userResponseList.add(toUserResponse(user, userCredential, divisionResponse, userProfileResponse));
+            getUserResponseList(userResponseList, user);
         }
 
         return userResponseList;
@@ -139,21 +128,27 @@ public class UserServiceImpl implements UserService {
         if (userList.isEmpty()) throw new ApplicationException("No users were found", null, HttpStatus.NOT_FOUND);
 
         for (User user : userList) {
-            UserCredentialResponse userCredentialResponse = userCredentialService.getByUserId(user.getId());
-            UserCredential userCredential = UserCredential.builder()
-                    .id(userCredentialResponse.getUserCredentialId())
-                    .email(userCredentialResponse.getEmail())
-                    .role(Role.builder()
-                            .name(userCredentialResponse.getRole())
-                            .build())
-                    .build();
-            DivisionResponse divisionResponse = divisionService.getDivisionById(user.getDivision().getId());
-            UserProfileResponse userProfileResponse = userProfileService.getByUserId(user.getId());
-
-            userResponseList.add(toUserResponse(user, userCredential, divisionResponse, userProfileResponse));
+            if (user.getIsActive()) {
+                getUserResponseList(userResponseList, user);
+            }
         }
 
         return userResponseList;
+    }
+
+    private void getUserResponseList(List<UserResponse> userResponseList, User user) {
+        UserCredentialResponse userCredentialResponse = userCredentialService.getByUserId(user.getId());
+        UserCredential userCredential = UserCredential.builder()
+                .id(userCredentialResponse.getUserCredentialId())
+                .email(userCredentialResponse.getEmail())
+                .role(Role.builder()
+                        .name(userCredentialResponse.getRole())
+                        .build())
+                .build();
+        DivisionResponse divisionResponse = divisionService.getDivisionById(user.getDivision().getId());
+        UserProfileResponse userProfileResponse = userProfileService.getByUserId(user.getId());
+
+        userResponseList.add(toUserResponse(user, userCredential, divisionResponse, userProfileResponse));
     }
 
     private static UserResponse toUserResponse(User user, UserCredential userCredential, DivisionResponse divisionResponse, UserProfileResponse userProfileResponse) {

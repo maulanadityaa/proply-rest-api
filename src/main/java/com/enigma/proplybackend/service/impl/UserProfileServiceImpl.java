@@ -36,7 +36,7 @@ public class UserProfileServiceImpl implements UserProfileService {
         UserResponse userResponse = userService.getUserById(userProfileRequest.getUserId());
 
         try {
-            if (userProfileRequest.getImage().isEmpty())
+            if (userProfileRequest.getImage().isEmpty() || userProfileRequest.getImage() == null)
                 throw new ApplicationException("Profile image is empty", "Profile image must specified", HttpStatus.BAD_REQUEST);
 
             String imageName = userProfileRequest.getImage().getName() + "-" + Instant.now();
