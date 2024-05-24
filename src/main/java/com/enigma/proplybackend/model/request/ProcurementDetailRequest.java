@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ProcurementDetailRequest {
-    private String id;
+    private String procurementDetailId;
     private String procurementId;
     private String itemId;
     private Integer quantity;
