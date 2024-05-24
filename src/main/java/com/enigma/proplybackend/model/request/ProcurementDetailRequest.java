@@ -14,4 +14,5 @@ public class ProcurementDetailRequest {
     private String procurementId;
     private String itemId;
     private Integer quantity;
+    private String notes;
 }

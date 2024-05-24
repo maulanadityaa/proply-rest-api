@@ -65,6 +65,7 @@ public class JwtUtil {
             Map<String, String> userInfo = new HashMap<>();
             userInfo.put("userId", decodedJWT.getSubject());
             userInfo.put("role", decodedJWT.getClaim("role").asString());
+            userInfo.put("email", decodedJWT.getClaim("email").asString());
 
             return userInfo;
         } catch (JWTVerificationException e) {

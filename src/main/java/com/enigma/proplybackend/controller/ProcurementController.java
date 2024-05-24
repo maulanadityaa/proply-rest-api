@@ -4,9 +4,12 @@ import com.enigma.proplybackend.constant.AppPath;
 import com.enigma.proplybackend.model.request.ProcurementDetailRequest;
 import com.enigma.proplybackend.model.request.ProcurementRequest;
 import com.enigma.proplybackend.model.response.CommonResponse;
+import com.enigma.proplybackend.model.response.CommonResponseWithPage;
+import com.enigma.proplybackend.model.response.PagingResponse;
 import com.enigma.proplybackend.model.response.ProcurementResponse;
 import com.enigma.proplybackend.service.ProcurementService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,6 +17,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -40,8 +44,8 @@ public class ProcurementController {
     }
 
     @PutMapping(AppPath.APPROVE_PROCUREMENT)
-    public ResponseEntity<?> approveProcurement(@RequestBody ProcurementDetailRequest procurementDetailRequest) {
-        ProcurementResponse procurementResponse = procurementService.approveProcurement(procurementDetailRequest);
+    public ResponseEntity<?> approveProcurement(@RequestBody ProcurementDetailRequest procurementDetailRequest, @RequestHeader("Authorization") String authorization) {
+        ProcurementResponse procurementResponse = procurementService.approveProcurement(procurementDetailRequest, authorization);
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body(CommonResponse.<ProcurementResponse>builder()
@@ -53,8 +57,8 @@ public class ProcurementController {
     }
 
     @PutMapping(AppPath.REJECT_PROCUREMENT)
-    public ResponseEntity<?> rejectProcurement(@RequestBody ProcurementDetailRequest procurementDetailRequest) {
-        ProcurementResponse procurementResponse = procurementService.rejectProcurement(procurementDetailRequest);
+    public ResponseEntity<?> rejectProcurement(@RequestBody ProcurementDetailRequest procurementDetailRequest, @RequestHeader("Authorization") String authorization) {
+        ProcurementResponse procurementResponse = procurementService.rejectProcurement(procurementDetailRequest, authorization);
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body(CommonResponse.<ProcurementResponse>builder()
@@ -89,6 +93,28 @@ public class ProcurementController {
                         .data(procurementResponses)
                         .build()
                 );
+    }
+
+    @GetMapping("/page")
+    public ResponseEntity<?> getAllByNameOrCategory(
+            @RequestParam(name = "name", required = false) String name,
+            @RequestParam(name = "category", required = false) String category,
+            @RequestParam(name = "page", required = false, defaultValue = "0") Integer page,
+            @RequestParam(name = "size", required = false, defaultValue = "20") Integer size
+    ) {
+        Page<ProcurementResponse> procurementResponsePage = procurementService.getAllByNameOrCategory(name, category, page, size);
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(CommonResponseWithPage.<List<ProcurementResponse>>builder()
+                        .statusCode(HttpStatus.OK.value())
+                        .message("Procurements retrieved successfully")
+                        .data(procurementResponsePage.getContent())
+                        .paging(PagingResponse.builder()
+                                .currentPage(page)
+                                .size(size)
+                                .totalPages(procurementResponsePage.getTotalPages())
+                                .build())
+                        .build());
     }
 
     @GetMapping(AppPath.GET_BY_USER_ID)

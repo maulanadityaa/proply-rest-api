@@ -15,4 +15,7 @@ public class ProcurementDetailResponse {
     private ItemResponse itemResponse;
     private EProcurementStatus status;
     private Integer quantity;
+    private String notes;
+    private UserResponse approvedBy;
+    private Long approvedAt;
 }
