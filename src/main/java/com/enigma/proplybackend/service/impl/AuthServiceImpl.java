@@ -35,6 +35,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.thymeleaf.context.Context;
 
 import java.util.Map;
 
@@ -121,23 +122,29 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public MailResponse resetPassword(String email) {
+        Context context = new Context();
+
         UserCredential userCredential = userCredentialService.getByEmail(email);
 
         if (userCredential != null) {
             String randomPassword = RandomStringGenerator.generateRandomString();
-            Boolean isSend = mailSenderService.sendEmail(MailRequest.builder()
+            context.setVariable("newpassword", randomPassword);
+            Boolean isSend = mailSenderService.sendEmailWithTemplate(MailRequest.builder()
                     .to(email)
                     .subject("Reset Password")
                     .body("Your password has been reset.\nUse password below to login into your account\n" + randomPassword)
-                    .build());
-            if (isSend) {
-                userCredential.setPassword(passwordEncoder.encode(randomPassword));
-                userCredentialRepository.save(userCredential);
-
-                return MailResponse.builder()
-                        .email(email)
-                        .build();
-            }
+                    .build(), context);
+//            if (isSend) {
+//                userCredential.setPassword(passwordEncoder.encode(randomPassword));
+//                userCredentialRepository.save(userCredential);
+//
+//                return MailResponse.builder()
+//                        .email(email)
+//                        .build();
+//            }
+            return MailResponse.builder()
+                    .email(email)
+                    .build();
         }
 
         throw new ApplicationException("Email not sent", "Email not sent", HttpStatus.INTERNAL_SERVER_ERROR);

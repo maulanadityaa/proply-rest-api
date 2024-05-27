@@ -8,6 +8,7 @@ import com.enigma.proplybackend.model.response.LoginResponse;
 import com.enigma.proplybackend.model.response.MailResponse;
 import com.enigma.proplybackend.model.response.RegisterResponse;
 import com.enigma.proplybackend.service.AuthService;
+import com.enigma.proplybackend.service.MailSenderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class AuthController {
     private final AuthService authService;
+    private final MailSenderService mailSenderService;
 
     @PostMapping(AppPath.REGISTER_ADMIN)
     public ResponseEntity<?> registerAdmin(@RequestBody AuthRequest authRequest) {
@@ -80,6 +82,19 @@ public class AuthController {
 
     @PostMapping(AppPath.RESET_PASSWORD)
     public ResponseEntity<?> resetPassword(@RequestBody MailRequest mailRequest) {
+        MailResponse mailResponse = authService.resetPassword(mailRequest.getTo());
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(CommonResponse.<MailResponse>builder()
+                        .statusCode(HttpStatus.OK.value())
+                        .message("Account password has been reset successfully")
+                        .data(mailResponse)
+                        .build()
+                );
+    }
+
+    @PostMapping("/send-email")
+    public ResponseEntity<?> sendEmail(@RequestBody MailRequest mailRequest) {
         MailResponse mailResponse = authService.resetPassword(mailRequest.getTo());
 
         return ResponseEntity.status(HttpStatus.OK)
