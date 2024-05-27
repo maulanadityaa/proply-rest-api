@@ -1,5 +1,6 @@
 package com.enigma.proplybackend.service.impl;
 
+import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.enigma.proplybackend.constant.ERole;
 import com.enigma.proplybackend.model.entity.AppUser;
 import com.enigma.proplybackend.model.entity.Role;
@@ -134,28 +135,20 @@ public class AuthServiceImpl implements AuthService {
                     .subject("Reset Password")
                     .body("Your password has been reset.\nUse password below to login into your account\n" + randomPassword)
                     .build(), context);
-//            if (isSend) {
-//                userCredential.setPassword(passwordEncoder.encode(randomPassword));
-//                userCredentialRepository.save(userCredential);
-//
-//                return MailResponse.builder()
-//                        .email(email)
-//                        .build();
-//            }
-            return MailResponse.builder()
-                    .email(email)
-                    .build();
+            if (isSend) {
+                userCredential.setPassword(passwordEncoder.encode(randomPassword));
+                userCredentialRepository.save(userCredential);
+
+                return MailResponse.builder()
+                        .email(email)
+                        .build();
+            }
         }
 
         throw new ApplicationException("Email not sent", "Email not sent", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     private RegisterResponse getRegisterResponse(AuthRequest authRequest, Role role) {
-//        UserCredential userCredential = userCredentialService.getByEmail(authRequest.getEmail());
-//        if (userCredential != null) {
-//            throw new ApplicationException("Data request conflict", "User already exists", HttpStatus.CONFLICT);
-//        }
-
         UserRequest userRequest = UserRequest.builder()
                 .fullName(authRequest.getFullName())
                 .birthDate(authRequest.getBirthDate())
@@ -179,5 +172,15 @@ public class AuthServiceImpl implements AuthService {
                 .email(userCredential.getEmail())
                 .role(role.getName().name())
                 .build();
+    }
+
+    @Override
+    public Boolean verifyToken(String token) {
+        try {
+            Boolean isValid = jwtUtil.verifyJwtToken(token.substring(7));
+            return isValid;
+        } catch (JWTVerificationException e) {
+            throw new ApplicationException("Invalid token", "Invalid token", HttpStatus.UNAUTHORIZED);
+        }
     }
 }

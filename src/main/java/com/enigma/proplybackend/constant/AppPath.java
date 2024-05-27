@@ -8,6 +8,7 @@ public class AppPath {
     public static final String REGISTER_MANAGER = "/register/manager";
     public static final String LOGIN = "/login";
     public static final String RESET_PASSWORD = "/reset-password";
+    public static final String VALIDATE_TOKEN = "/validate-token";
     public static final String DIVISIONS = API + "/divisions";
     public static final String USERS = API + "/users";
     public static final String USER_PROFILES = API + "/user-profiles";

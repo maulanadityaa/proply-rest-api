@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -93,15 +94,15 @@ public class AuthController {
                 );
     }
 
-    @PostMapping("/send-email")
-    public ResponseEntity<?> sendEmail(@RequestBody MailRequest mailRequest) {
-        MailResponse mailResponse = authService.resetPassword(mailRequest.getTo());
+    @GetMapping(AppPath.VALIDATE_TOKEN)
+    public ResponseEntity<?> verifyToken(@RequestHeader("Authorization") String authorization) {
+        authService.verifyToken(authorization);
 
         return ResponseEntity.status(HttpStatus.OK)
-                .body(CommonResponse.<MailResponse>builder()
+                .body(CommonResponse.<Boolean>builder()
                         .statusCode(HttpStatus.OK.value())
-                        .message("Account password has been reset successfully")
-                        .data(mailResponse)
+                        .message("Token verified successfully")
+                        .data(null)
                         .build()
                 );
     }

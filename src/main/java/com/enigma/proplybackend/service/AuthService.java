@@ -15,4 +15,6 @@ public interface AuthService {
     LoginResponse login(AuthRequest authRequest);
 
     MailResponse resetPassword(String email);
+
+    Boolean verifyToken(String token);
 }

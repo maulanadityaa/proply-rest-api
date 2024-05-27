@@ -7,11 +7,14 @@ import com.auth0.jwt.exceptions.JWTCreationException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.enigma.proplybackend.model.entity.AppUser;
+import com.enigma.proplybackend.model.exception.ApplicationException;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -49,10 +52,11 @@ public class JwtUtil {
             Algorithm algorithm = Algorithm.HMAC256(jwtSecret.getBytes(StandardCharsets.UTF_8));
             JWTVerifier verifier = JWT.require(algorithm).build();
             DecodedJWT decodedJWT = verifier.verify(token);
+            decodedJWT.getExpiresAt().before(new Date());
 
             return decodedJWT.getIssuer().equals(appName);
         } catch (JWTVerificationException e) {
-            throw new RuntimeException();
+            throw new ApplicationException("Token expired", "JWT already expired. Please login again", HttpStatus.FORBIDDEN);
         }
     }
 
