@@ -7,6 +7,7 @@ public class AppPath {
     public static final String REGISTER_EMPLOYEE = "/register/employee";
     public static final String REGISTER_MANAGER = "/register/manager";
     public static final String LOGIN = "/login";
+    public static final String RESET_PASSWORD = "/reset-password";
     public static final String DIVISIONS = API + "/divisions";
     public static final String USERS = API + "/users";
     public static final String USER_PROFILES = API + "/user-profiles";
@@ -14,6 +15,7 @@ public class AppPath {
     public static final String ITEM = API + "/items";
     public static final String PROCUREMENT_CATEGORY = API + "/procurement-categories";
     public static final String PROCUREMENT = API + "/procurements";
+    public static final String MAIL_SENDER = API + "/send-email";
     public static final String APPROVE_PROCUREMENT = "/approve";
     public static final String REJECT_PROCUREMENT = "/reject";
     public static final String CANCEL_PROCUREMENT = "/cancel";

@@ -2,8 +2,10 @@ package com.enigma.proplybackend.controller;
 
 import com.enigma.proplybackend.constant.AppPath;
 import com.enigma.proplybackend.model.request.AuthRequest;
+import com.enigma.proplybackend.model.request.MailRequest;
 import com.enigma.proplybackend.model.response.CommonResponse;
 import com.enigma.proplybackend.model.response.LoginResponse;
+import com.enigma.proplybackend.model.response.MailResponse;
 import com.enigma.proplybackend.model.response.RegisterResponse;
 import com.enigma.proplybackend.service.AuthService;
 import lombok.RequiredArgsConstructor;
@@ -72,6 +74,19 @@ public class AuthController {
                         .statusCode(HttpStatus.OK.value())
                         .message("Login successfully")
                         .data(loginResponse)
+                        .build()
+                );
+    }
+
+    @PostMapping(AppPath.RESET_PASSWORD)
+    public ResponseEntity<?> resetPassword(@RequestBody MailRequest mailRequest) {
+        MailResponse mailResponse = authService.resetPassword(mailRequest.getTo());
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(CommonResponse.<MailResponse>builder()
+                        .statusCode(HttpStatus.OK.value())
+                        .message("Account password has been reset successfully")
+                        .data(mailResponse)
                         .build()
                 );
     }

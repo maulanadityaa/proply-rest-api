@@ -7,17 +7,23 @@ import com.enigma.proplybackend.model.entity.User;
 import com.enigma.proplybackend.model.entity.UserCredential;
 import com.enigma.proplybackend.model.exception.ApplicationException;
 import com.enigma.proplybackend.model.request.AuthRequest;
+import com.enigma.proplybackend.model.request.MailRequest;
 import com.enigma.proplybackend.model.request.UserRequest;
 import com.enigma.proplybackend.model.response.DivisionResponse;
 import com.enigma.proplybackend.model.response.LoginResponse;
+import com.enigma.proplybackend.model.response.MailResponse;
 import com.enigma.proplybackend.model.response.RegisterResponse;
 import com.enigma.proplybackend.model.response.UserResponse;
 import com.enigma.proplybackend.repository.UserCredentialRepository;
 import com.enigma.proplybackend.security.JwtUtil;
 import com.enigma.proplybackend.service.AuthService;
 import com.enigma.proplybackend.service.DivisionService;
+import com.enigma.proplybackend.service.MailSenderService;
 import com.enigma.proplybackend.service.RoleService;
+import com.enigma.proplybackend.service.UserCredentialService;
 import com.enigma.proplybackend.service.UserService;
+import com.enigma.proplybackend.util.RandomStringGenerator;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -36,13 +42,16 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
     private final UserCredentialRepository userCredentialRepository;
+    private final UserCredentialService userCredentialService;
     private final UserService userService;
     private final PasswordEncoder passwordEncoder;
     private final RoleService roleService;
     private final AuthenticationManager authenticationManager;
     private final DivisionService divisionService;
     private final JwtUtil jwtUtil;
+    private final MailSenderService mailSenderService;
 
+    @Transactional(rollbackOn = Exception.class)
     @Override
     public RegisterResponse registerAdmin(AuthRequest authRequest) {
         try {
@@ -54,6 +63,7 @@ public class AuthServiceImpl implements AuthService {
         }
     }
 
+    @Transactional(rollbackOn = Exception.class)
     @Override
     public RegisterResponse registerEmployee(AuthRequest authRequest, String authorization) {
         try {
@@ -76,6 +86,7 @@ public class AuthServiceImpl implements AuthService {
         }
     }
 
+    @Transactional(rollbackOn = Exception.class)
     @Override
     public RegisterResponse registerManager(AuthRequest authRequest) {
         try {
@@ -108,7 +119,36 @@ public class AuthServiceImpl implements AuthService {
         }
     }
 
+    @Override
+    public MailResponse resetPassword(String email) {
+        UserCredential userCredential = userCredentialService.getByEmail(email);
+
+        if (userCredential != null) {
+            String randomPassword = RandomStringGenerator.generateRandomString();
+            Boolean isSend = mailSenderService.sendEmail(MailRequest.builder()
+                    .to(email)
+                    .subject("Reset Password")
+                    .body("Your password has been reset.\nUse password below to login into your account\n" + randomPassword)
+                    .build());
+            if (isSend) {
+                userCredential.setPassword(passwordEncoder.encode(randomPassword));
+                userCredentialRepository.save(userCredential);
+
+                return MailResponse.builder()
+                        .email(email)
+                        .build();
+            }
+        }
+
+        throw new ApplicationException("Email not sent", "Email not sent", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
     private RegisterResponse getRegisterResponse(AuthRequest authRequest, Role role) {
+//        UserCredential userCredential = userCredentialService.getByEmail(authRequest.getEmail());
+//        if (userCredential != null) {
+//            throw new ApplicationException("Data request conflict", "User already exists", HttpStatus.CONFLICT);
+//        }
+
         UserRequest userRequest = UserRequest.builder()
                 .fullName(authRequest.getFullName())
                 .birthDate(authRequest.getBirthDate())
@@ -125,7 +165,7 @@ public class AuthServiceImpl implements AuthService {
                 .role(role)
                 .user(user)
                 .build();
-        userCredentialRepository.save(userCredential);
+        userCredentialRepository.saveAndFlush(userCredential);
 
 
         return RegisterResponse.builder()

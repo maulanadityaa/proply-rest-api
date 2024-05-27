@@ -26,7 +26,7 @@ public class SecurityConfiguration {
     private final AuthTokenFilter authTokenFilter;
 
     private static final String[] WHITE_LIST_URL = {
-            "/api/v1/auth/login",
+            "/api/v1/auth/**",
             "/swagger-ui/**",
             "/v3/api-docs/**",
     };
@@ -58,11 +58,11 @@ public class SecurityConfiguration {
                                 .permitAll()
                                 .anyRequest()
                                 .authenticated())
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .addFilterBefore(authTokenFilter, UsernamePasswordAuthenticationFilter.class)
                 .exceptionHandling(exceptionHandling -> exceptionHandling
                         .authenticationEntryPoint(authenticationEntryPoint())
-                        .accessDeniedHandler(accessDeniedHandler()));
+                        .accessDeniedHandler(accessDeniedHandler()))
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .addFilterBefore(authTokenFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
