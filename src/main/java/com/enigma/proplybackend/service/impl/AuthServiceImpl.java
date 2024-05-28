@@ -177,8 +177,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public Boolean verifyToken(String token) {
         try {
-            Boolean isValid = jwtUtil.verifyJwtToken(token.substring(7));
-            return isValid;
+            return jwtUtil.verifyJwtToken(token.substring(7));
         } catch (JWTVerificationException e) {
             throw new ApplicationException("Invalid token", "Invalid token", HttpStatus.UNAUTHORIZED);
         }
