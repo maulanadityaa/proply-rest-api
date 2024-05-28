@@ -1,6 +1,5 @@
 package com.enigma.proplybackend.service.impl;
 
-import com.enigma.proplybackend.constant.EProcurementStatus;
 import com.enigma.proplybackend.model.entity.ProcurementDetail;
 import com.enigma.proplybackend.model.exception.ApplicationException;
 import com.enigma.proplybackend.repository.ProcurementDetailRepository;
@@ -22,14 +21,5 @@ public class ProcurementDetailServiceImpl implements ProcurementDetailService {
     @Override
     public ProcurementDetail getProcurementDetailById(String procurementDetailId) {
         return procurementDetailRepository.findById(procurementDetailId).orElseThrow(() -> new ApplicationException("Procurement detail not found", "Procurement detail with id=" + procurementDetailId + " not found", HttpStatus.NOT_FOUND));
-    }
-
-    @Override
-    public ProcurementDetail updateStatusProcurementDetail(String procurementDetailId, EProcurementStatus procurementStatus) {
-        ProcurementDetail procurementDetail = procurementDetailRepository.findById(procurementDetailId).orElseThrow(() -> new ApplicationException("Procurement detail not found", "Procurement detail with id=" + procurementDetailId + " not found", HttpStatus.NOT_FOUND));
-        procurementDetail.setStatus(procurementStatus);
-        procurementDetailRepository.save(procurementDetail);
-
-        return procurementDetail;
     }
 }

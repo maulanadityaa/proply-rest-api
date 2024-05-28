@@ -1,6 +1,7 @@
 package com.enigma.proplybackend.service.impl;
 
 import com.enigma.proplybackend.constant.EProcurementStatus;
+import com.enigma.proplybackend.model.entity.Approval;
 import com.enigma.proplybackend.model.entity.Division;
 import com.enigma.proplybackend.model.entity.Item;
 import com.enigma.proplybackend.model.entity.ItemCategory;
@@ -10,8 +11,10 @@ import com.enigma.proplybackend.model.entity.ProcurementDetail;
 import com.enigma.proplybackend.model.entity.User;
 import com.enigma.proplybackend.model.entity.UserCredential;
 import com.enigma.proplybackend.model.exception.ApplicationException;
-import com.enigma.proplybackend.model.request.ProcurementDetailRequest;
+import com.enigma.proplybackend.model.request.ApprovalRequest;
+import com.enigma.proplybackend.model.request.ProcurementApprovalRequest;
 import com.enigma.proplybackend.model.request.ProcurementRequest;
+import com.enigma.proplybackend.model.response.ApprovalResponse;
 import com.enigma.proplybackend.model.response.ItemResponse;
 import com.enigma.proplybackend.model.response.ProcurementCategoryResponse;
 import com.enigma.proplybackend.model.response.ProcurementDetailResponse;
@@ -19,6 +22,7 @@ import com.enigma.proplybackend.model.response.ProcurementResponse;
 import com.enigma.proplybackend.model.response.UserResponse;
 import com.enigma.proplybackend.repository.ProcurementRepository;
 import com.enigma.proplybackend.security.JwtUtil;
+import com.enigma.proplybackend.service.ApprovalService;
 import com.enigma.proplybackend.service.ItemService;
 import com.enigma.proplybackend.service.ProcurementCategoryService;
 import com.enigma.proplybackend.service.ProcurementDetailService;
@@ -52,6 +56,7 @@ public class ProcurementServiceImpl implements ProcurementService {
     private final ItemService itemService;
     private final UserCredentialService userCredentialService;
     private final JwtUtil jwtUtil;
+    private final ApprovalService approvalService;
 
     @Transactional(rollbackOn = Exception.class)
     @Override
@@ -104,7 +109,6 @@ public class ProcurementServiceImpl implements ProcurementService {
 
                     ProcurementDetail procurementDetail = ProcurementDetail.builder()
                             .procurement(procurement)
-                            .status(EProcurementStatus.PENDING)
                             .item(item)
                             .quantity(procurementDetailRequest.getQuantity())
                             .build();
@@ -113,13 +117,45 @@ public class ProcurementServiceImpl implements ProcurementService {
                     return ProcurementDetailResponse.builder()
                             .procurementDetailId(procurementDetail.getId())
                             .itemResponse(itemResponse)
-                            .status(procurementDetail.getStatus())
                             .quantity(procurementDetail.getQuantity())
                             .build();
                 }
         ).toList();
 
-        return toProcurementResponse(procurement, procurementCategoryResponse, procurementDetailResponses, userResponse);
+        List<ApprovalResponse> approvalResponses = new ArrayList<>();
+
+        for (int i = 0; i < procurementRequest.getLevel(); i++) {
+            UserResponse userApprovalResponse = userService.getUserById(procurementRequest.getApprovalRequests().get(i).getUserId());
+            User userApproval = User.builder()
+                    .id(userApprovalResponse.getUserId())
+                    .fullName(userApprovalResponse.getFullName())
+                    .gender(userApprovalResponse.getGender())
+                    .birthDate(userApprovalResponse.getBirthDate())
+                    .maritalStatus(userApprovalResponse.getMaritalStatus())
+                    .division(Division.builder()
+                            .id(userApprovalResponse.getDivisionResponse().getDivisionId())
+                            .name(userApprovalResponse.getDivisionResponse().getName())
+                            .isActive(userApprovalResponse.getDivisionResponse().getIsActive())
+                            .build())
+                    .isActive(true)
+                    .build();
+
+            Approval approval = Approval.builder()
+                    .procurement(procurement)
+                    .user(userApproval)
+                    .status(EProcurementStatus.PENDING)
+                    .build();
+            approvalService.addApproval(approval);
+
+            ApprovalResponse approvalResponse = ApprovalResponse.builder()
+                    .userResponse(userApprovalResponse)
+                    .status(approval.getStatus())
+                    .notes(approval.getNotes() != null ? approval.getNotes() : "")
+                    .build();
+            approvalResponses.add(approvalResponse);
+        }
+
+        return toProcurementResponse(procurement, procurementCategoryResponse, procurementDetailResponses, userResponse, approvalResponses);
     }
 
     @Override
@@ -132,13 +168,24 @@ public class ProcurementServiceImpl implements ProcurementService {
 
         List<ProcurementDetailResponse> procurementDetailResponses = getProcurementDetailList(procurement);
 
-        return toProcurementResponse(procurement, procurementCategoryResponse, procurementDetailResponses, userResponse);
+        List<ApprovalResponse> approvalResponses = procurement.getApprovals().stream().map(
+                approval -> {
+                    UserResponse userApprovalResponse = userService.getUserById(approval.getUser().getId());
+                    return ApprovalResponse.builder()
+                            .userResponse(userApprovalResponse)
+                            .status(approval.getStatus())
+                            .notes(approval.getNotes() != null ? approval.getNotes() : "")
+                            .build();
+                }
+        ).toList();
+
+        return toProcurementResponse(procurement, procurementCategoryResponse, procurementDetailResponses, userResponse, approvalResponses);
     }
 
     @Transactional(rollbackOn = Exception.class)
     @Override
-    public ProcurementResponse approveProcurement(ProcurementDetailRequest procurementDetailRequest, String authorization) {
-        Procurement procurement = procurementRepository.findById(procurementDetailRequest.getProcurementId()).orElseThrow(() -> new ApplicationException("Could not find procurement", "Procurement with id=" + procurementDetailRequest.getProcurementId() + " not found", HttpStatus.NOT_FOUND));
+    public ProcurementResponse approveProcurement(ProcurementApprovalRequest procurementApprovalRequest, String authorization) {
+        Procurement procurement = procurementRepository.findById(procurementApprovalRequest.getProcurementId()).orElseThrow(() -> new ApplicationException("Could not find procurement", "Procurement with id=" + procurementApprovalRequest.getProcurementId() + " not found", HttpStatus.NOT_FOUND));
 
         ProcurementCategoryResponse procurementCategoryResponse = procurementCategoryService.getProcurementCategoryById(procurement.getProcurementCategory().getId());
 
@@ -150,42 +197,65 @@ public class ProcurementServiceImpl implements ProcurementService {
 
                     ProcurementDetail existProcurementDetail = procurementDetailService.getProcurementDetailById(procurementDetail.getId());
 
-                    UserResponse userApprovalResponse = null;
-
-                    if (procurementDetail.getId().equals(procurementDetailRequest.getProcurementDetailId())) {
-                        Map<String, String> userInfo = jwtUtil.getUserInfoByToken(authorization.substring(7));
-
-                        String email = userInfo.get("email");
-                        UserCredential userCredential = userCredentialService.getByEmail(email);
-                        userApprovalResponse = userService.getUserById(userCredential.getUser().getId());
-
-                        existProcurementDetail = procurementDetailService.updateStatusProcurementDetail(procurementDetail.getId(), EProcurementStatus.APPROVED);
-                        existProcurementDetail.setApprovedAt(Instant.now().toEpochMilli());
-                        existProcurementDetail.setApprovedBy(userApprovalResponse.getUserId());
-
-                        procurementDetailService.addProcurementDetail(existProcurementDetail);
-                    }
-
                     return ProcurementDetailResponse.builder()
                             .procurementDetailId(existProcurementDetail.getId())
                             .itemResponse(itemResponse)
-                            .status(existProcurementDetail.getStatus())
                             .quantity(existProcurementDetail.getQuantity())
-                            .approvedAt(existProcurementDetail.getApprovedAt())
-                            .approvedBy(userApprovalResponse)
                             .build();
                 }
         ).toList();
 
+        List<ApprovalResponse> approvalResponses = new ArrayList<>();
+        int counter = 0;
+
+        for (Approval approval : procurement.getApprovals()) {
+            UserResponse userApprovalResponse = userService.getUserById(approval.getUser().getId());
+
+            Map<String, String> userInfo = jwtUtil.getUserInfoByToken(authorization.substring(7));
+
+            String email = userInfo.get("email");
+            UserCredential userCredential = userCredentialService.getByEmail(email);
+            UserResponse loginUserApproval = userService.getUserById(userCredential.getUser().getId());
+
+            if (!userApprovalResponse.getUserId().equals(loginUserApproval.getUserId())) {
+                ++counter;
+                if (counter == procurement.getApprovals().size()) {
+                    throw new ApplicationException("Bad user approval", "Only manager that corresponds to the same procurement can approve", HttpStatus.BAD_REQUEST);
+                }
+
+                approvalResponses.add(ApprovalResponse.builder()
+                        .userResponse(userApprovalResponse)
+                        .status(approval.getStatus())
+                        .notes(approval.getNotes() != null ? approval.getNotes() : "")
+                        .build());
+
+                continue;
+            }
+
+            approval.setStatus(EProcurementStatus.APPROVED);
+
+            approvalService.updateApproval(ApprovalRequest.builder()
+                    .approvalId(approval.getId())
+                    .userId(userApprovalResponse.getUserId())
+                    .notes(approval.getNotes())
+                    .status(approval.getStatus())
+                    .build());
+            approvalResponses.add(ApprovalResponse.builder()
+                    .userResponse(userApprovalResponse)
+                    .status(approval.getStatus())
+                    .notes(approval.getNotes() != null ? approval.getNotes() : "")
+                    .build());
+        }
+
         procurement.setUpdatedAt(Instant.now().toEpochMilli());
 
-        return toProcurementResponse(procurement, procurementCategoryResponse, procurementDetailResponses, userResponse);
+        return toProcurementResponse(procurement, procurementCategoryResponse, procurementDetailResponses, userResponse, approvalResponses);
     }
 
     @Transactional(rollbackOn = Exception.class)
     @Override
-    public ProcurementResponse rejectProcurement(ProcurementDetailRequest procurementDetailRequest, String authorization) {
-        Procurement procurement = procurementRepository.findById(procurementDetailRequest.getProcurementId()).orElseThrow(() -> new ApplicationException("Could not find procurement", "Procurement with id=" + procurementDetailRequest.getProcurementId() + " not found", HttpStatus.NOT_FOUND));
+    public ProcurementResponse rejectProcurement(ProcurementApprovalRequest procurementApprovalRequest, String authorization) {
+        Procurement procurement = procurementRepository.findById(procurementApprovalRequest.getProcurementId()).orElseThrow(() -> new ApplicationException("Could not find procurement", "Procurement with id=" + procurementApprovalRequest.getProcurementId() + " not found", HttpStatus.NOT_FOUND));
 
         ProcurementCategoryResponse procurementCategoryResponse = procurementCategoryService.getProcurementCategoryById(procurement.getProcurementCategory().getId());
 
@@ -197,32 +267,66 @@ public class ProcurementServiceImpl implements ProcurementService {
 
                     ProcurementDetail existProcurementDetail = procurementDetailService.getProcurementDetailById(procurementDetail.getId());
 
-                    if (procurementDetail.getId().equals(procurementDetailRequest.getProcurementDetailId())) {
-                        existProcurementDetail.setNotes(procurementDetailRequest.getNotes());
-                        existProcurementDetail = procurementDetailService.updateStatusProcurementDetail(procurementDetail.getId(), EProcurementStatus.REJECTED);
-
-                        procurementDetailService.addProcurementDetail(existProcurementDetail);
-                    }
-
                     return ProcurementDetailResponse.builder()
                             .procurementDetailId(existProcurementDetail.getId())
                             .itemResponse(itemResponse)
-                            .status(existProcurementDetail.getStatus())
                             .quantity(existProcurementDetail.getQuantity())
-                            .notes(existProcurementDetail.getNotes())
                             .build();
                 }
         ).toList();
 
+        List<ApprovalResponse> approvalResponses = new ArrayList<>();
+
+        int counter = 0;
+
+        for (Approval approval : procurement.getApprovals()) {
+            UserResponse userApprovalResponse = userService.getUserById(approval.getUser().getId());
+
+            Map<String, String> userInfo = jwtUtil.getUserInfoByToken(authorization.substring(7));
+
+            String email = userInfo.get("email");
+            UserCredential userCredential = userCredentialService.getByEmail(email);
+            UserResponse loginUserApproval = userService.getUserById(userCredential.getUser().getId());
+
+            if (!userApprovalResponse.getUserId().equals(loginUserApproval.getUserId())) {
+                ++counter;
+                if (counter == procurement.getApprovals().size()) {
+                    throw new ApplicationException("Bad user approval", "Only manager that corresponds to the same procurement can approve", HttpStatus.BAD_REQUEST);
+                }
+
+                approvalResponses.add(ApprovalResponse.builder()
+                        .userResponse(userApprovalResponse)
+                        .status(approval.getStatus())
+                        .notes(approval.getNotes() != null ? approval.getNotes() : "")
+                        .build());
+
+                continue;
+            }
+
+            approval.setStatus(EProcurementStatus.REJECTED);
+
+            approvalService.updateApproval(ApprovalRequest.builder()
+                    .approvalId(approval.getId())
+                    .userId(userApprovalResponse.getUserId())
+                    .notes(approval.getNotes())
+                    .status(approval.getStatus())
+                    .build());
+            approvalResponses.add(ApprovalResponse.builder()
+                    .userResponse(userApprovalResponse)
+                    .status(approval.getStatus())
+                    .notes(approval.getNotes() != null ? approval.getNotes() : "")
+                    .build());
+        }
+
         procurement.setUpdatedAt(Instant.now().toEpochMilli());
 
-        return toProcurementResponse(procurement, procurementCategoryResponse, procurementDetailResponses, userResponse);
+        return toProcurementResponse(procurement, procurementCategoryResponse, procurementDetailResponses, userResponse, approvalResponses);
     }
 
     @Transactional(rollbackOn = Exception.class)
     @Override
-    public ProcurementResponse cancelProcurement(ProcurementDetailRequest procurementDetailRequest) {
-        Procurement procurement = procurementRepository.findById(procurementDetailRequest.getProcurementId()).orElseThrow(() -> new ApplicationException("Could not find procurement", "Procurement with id=" + procurementDetailRequest.getProcurementId() + " not found", HttpStatus.NOT_FOUND));
+    public ProcurementResponse cancelProcurement(ProcurementApprovalRequest procurementApprovalRequest) {
+        Procurement procurement = procurementRepository.findById(procurementApprovalRequest.getProcurementId()).orElseThrow(() -> new ApplicationException("Could not find procurement", "Procurement with id=" + procurementApprovalRequest.getProcurementId() + " not found", HttpStatus.NOT_FOUND));
 
         ProcurementCategoryResponse procurementCategoryResponse = procurementCategoryService.getProcurementCategoryById(procurement.getProcurementCategory().getId());
 
@@ -234,22 +338,37 @@ public class ProcurementServiceImpl implements ProcurementService {
 
                     ProcurementDetail existProcurementDetail = procurementDetailService.getProcurementDetailById(procurementDetail.getId());
 
-                    if (procurementDetail.getId().equals(procurementDetailRequest.getProcurementDetailId())) {
-                        existProcurementDetail = procurementDetailService.updateStatusProcurementDetail(procurementDetail.getId(), EProcurementStatus.CANCELED);
-                    }
-
                     return ProcurementDetailResponse.builder()
                             .procurementDetailId(existProcurementDetail.getId())
                             .itemResponse(itemResponse)
-                            .status(existProcurementDetail.getStatus())
                             .quantity(existProcurementDetail.getQuantity())
+                            .build();
+                }
+        ).toList();
+
+        List<ApprovalResponse> approvalResponses = procurement.getApprovals().stream().map(
+                approval -> {
+                    UserResponse userApprovalResponse = userService.getUserById(approval.getUser().getId());
+                    approval.setStatus(EProcurementStatus.CANCELED);
+
+                    approvalService.updateApproval(ApprovalRequest.builder()
+                            .approvalId(approval.getId())
+                            .userId(userApprovalResponse.getUserId())
+                            .notes(approval.getNotes())
+                            .status(approval.getStatus())
+                            .build());
+
+                    return ApprovalResponse.builder()
+                            .userResponse(userApprovalResponse)
+                            .status(approval.getStatus())
+                            .notes(approval.getNotes() != null ? approval.getNotes() : "")
                             .build();
                 }
         ).toList();
 
         procurement.setUpdatedAt(Instant.now().toEpochMilli());
 
-        return toProcurementResponse(procurement, procurementCategoryResponse, procurementDetailResponses, userResponse);
+        return toProcurementResponse(procurement, procurementCategoryResponse, procurementDetailResponses, userResponse, approvalResponses);
     }
 
     @Override
@@ -286,7 +405,19 @@ public class ProcurementServiceImpl implements ProcurementService {
         List<ProcurementResponse> procurementResponses = new ArrayList<>();
 
         for (Procurement procurement : procurementPage.getContent()) {
-            procurementResponses.add(toProcurementResponse(procurement, procurementCategoryService.getProcurementCategoryById(procurement.getProcurementCategory().getId()), getProcurementDetailList(procurement), userService.getUserById(procurement.getUser().getId())));
+            List<ApprovalResponse> approvalResponses = procurement.getApprovals().stream().map(
+                    approval -> {
+                        UserResponse userApprovalResponse = userService.getUserById(approval.getUser().getId());
+
+                        return ApprovalResponse.builder()
+                                .userResponse(userApprovalResponse)
+                                .status(approval.getStatus())
+                                .notes(approval.getNotes() != null ? approval.getNotes() : "")
+                                .build();
+                    }
+            ).toList();
+
+            procurementResponses.add(toProcurementResponse(procurement, procurementCategoryService.getProcurementCategoryById(procurement.getProcurementCategory().getId()), getProcurementDetailList(procurement), userService.getUserById(procurement.getUser().getId()), approvalResponses));
         }
 
         return new PageImpl<>(procurementResponses, pageable, procurementPage.getTotalElements());
@@ -297,6 +428,23 @@ public class ProcurementServiceImpl implements ProcurementService {
         List<Procurement> procurements = procurementRepository.findAllByUser_Id(userId).orElseThrow(() -> new ApplicationException("No procurements found", null, HttpStatus.NOT_FOUND));
         List<ProcurementResponse> procurementResponses = new ArrayList<>();
 
+        if (procurements.isEmpty()) throw new ApplicationException("No procurements found", null, HttpStatus.NOT_FOUND);
+
+        for (Procurement procurement : procurements) {
+            List<ApprovalResponse> approvalResponses = procurement.getApprovals().stream().map(
+                    approval -> {
+                        UserResponse userApprovalResponse = userService.getUserById(approval.getUser().getId());
+
+                        return ApprovalResponse.builder()
+                                .userResponse(userApprovalResponse)
+                                .status(approval.getStatus())
+                                .notes(approval.getNotes() != null ? approval.getNotes() : "")
+                                .build();
+                    }
+            ).toList();
+
+            procurementResponses.add(toProcurementResponse(procurement, procurementCategoryService.getProcurementCategoryById(procurement.getProcurementCategory().getId()), getProcurementDetailList(procurement), userService.getUserById(procurement.getUser().getId()), approvalResponses));
+        }
 
         return getProcurementResponses(procurements, procurementResponses);
     }
@@ -308,18 +456,31 @@ public class ProcurementServiceImpl implements ProcurementService {
 
             List<ProcurementDetailResponse> procurementDetailResponses = getProcurementDetailList(procurement);
 
-            procurementResponses.add(toProcurementResponse(procurement, procurementCategoryResponse, procurementDetailResponses, userResponse));
+            List<ApprovalResponse> approvalResponses = procurement.getApprovals().stream().map(
+                    approval -> {
+                        UserResponse userApprovalResponse = userService.getUserById(approval.getUser().getId());
+
+                        return ApprovalResponse.builder()
+                                .userResponse(userApprovalResponse)
+                                .status(approval.getStatus())
+                                .notes(approval.getNotes() != null ? approval.getNotes() : "")
+                                .build();
+                    }
+            ).toList();
+
+            procurementResponses.add(toProcurementResponse(procurement, procurementCategoryResponse, procurementDetailResponses, userResponse, approvalResponses));
         }
 
         return procurementResponses;
     }
 
-    private static ProcurementResponse toProcurementResponse(Procurement procurement, ProcurementCategoryResponse procurementCategoryResponse, List<ProcurementDetailResponse> procurementDetailResponses, UserResponse userResponse) {
+    private static ProcurementResponse toProcurementResponse(Procurement procurement, ProcurementCategoryResponse procurementCategoryResponse, List<ProcurementDetailResponse> procurementDetailResponses, UserResponse userResponse, List<ApprovalResponse> approvalResponses) {
         return ProcurementResponse.builder()
                 .procurementId(procurement.getId())
                 .userResponse(userResponse)
                 .procurementCategoryResponse(procurementCategoryResponse)
                 .procurementDetailResponses(procurementDetailResponses)
+                .approvalResponses(approvalResponses)
                 .createdAt(procurement.getCreatedAt())
                 .updatedAt(procurement.getUpdatedAt())
                 .build();
@@ -335,7 +496,6 @@ public class ProcurementServiceImpl implements ProcurementService {
                     return ProcurementDetailResponse.builder()
                             .procurementDetailId(existProcurementDetail.getId())
                             .itemResponse(itemResponse)
-                            .status(existProcurementDetail.getStatus())
                             .quantity(existProcurementDetail.getQuantity())
                             .build();
                 }

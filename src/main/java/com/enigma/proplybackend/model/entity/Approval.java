@@ -1,8 +1,11 @@
 package com.enigma.proplybackend.model.entity;
 
 import com.enigma.proplybackend.constant.DbPath;
+import com.enigma.proplybackend.constant.EProcurementStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -21,20 +24,24 @@ import lombok.Setter;
 @NoArgsConstructor
 @Builder(toBuilder = true)
 @Entity
-@Table(name = DbPath.PROCUREMENT_DETAIL_SCHEMA)
-public class ProcurementDetail {
+@Table(name = DbPath.APPROVAL_SCHEMA)
+public class Approval {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
-    @Column(name = "quantity", nullable = false)
-    private Integer quantity;
+    @Column(name = "notes", nullable = true)
+    private String notes;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    private EProcurementStatus status;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
 
     @ManyToOne
     @JoinColumn(name = "procurement_id")
     private Procurement procurement;
-
-    @ManyToOne
-    @JoinColumn(name = "item_id")
-    private Item item;
 }

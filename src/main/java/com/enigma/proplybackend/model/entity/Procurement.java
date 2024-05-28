@@ -47,4 +47,7 @@ public class Procurement {
     @ManyToOne
     @JoinColumn(name = "procurement_category_id", nullable = false)
     private ProcurementCategory procurementCategory;
+
+    @OneToMany(mappedBy = "procurement", cascade = CascadeType.ALL)
+    private List<Approval> approvals;
 }
