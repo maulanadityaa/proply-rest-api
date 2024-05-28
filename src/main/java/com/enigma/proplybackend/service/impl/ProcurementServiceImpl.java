@@ -304,6 +304,7 @@ public class ProcurementServiceImpl implements ProcurementService {
             }
 
             approval.setStatus(EProcurementStatus.REJECTED);
+            approval.setNotes(procurementApprovalRequest.getNotes() != null ? procurementApprovalRequest.getNotes() : "");
 
             approvalService.updateApproval(ApprovalRequest.builder()
                     .approvalId(approval.getId())
