@@ -16,6 +16,7 @@ public class ProcurementResponse {
     private UserResponse userResponse;
     private ProcurementCategoryResponse procurementCategoryResponse;
     private List<ProcurementDetailResponse> procurementDetailResponses;
+    private List<ApprovalResponse> approvalResponses;
     private Long createdAt;
     private Long updatedAt;
 }

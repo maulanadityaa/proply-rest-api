@@ -1,7 +1,7 @@
 package com.enigma.proplybackend.controller;
 
 import com.enigma.proplybackend.constant.AppPath;
-import com.enigma.proplybackend.model.request.ProcurementDetailRequest;
+import com.enigma.proplybackend.model.request.ProcurementApprovalRequest;
 import com.enigma.proplybackend.model.request.ProcurementRequest;
 import com.enigma.proplybackend.model.response.CommonResponse;
 import com.enigma.proplybackend.model.response.CommonResponseWithPage;
@@ -47,8 +47,8 @@ public class ProcurementController {
 
     @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER')")
     @PutMapping(AppPath.APPROVE_PROCUREMENT)
-    public ResponseEntity<?> approveProcurement(@RequestBody ProcurementDetailRequest procurementDetailRequest, @RequestHeader("Authorization") String authorization) {
-        ProcurementResponse procurementResponse = procurementService.approveProcurement(procurementDetailRequest, authorization);
+    public ResponseEntity<?> approveProcurement(@RequestBody ProcurementApprovalRequest procurementApprovalRequest, @RequestHeader("Authorization") String authorization) {
+        ProcurementResponse procurementResponse = procurementService.approveProcurement(procurementApprovalRequest, authorization);
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body(CommonResponse.<ProcurementResponse>builder()
@@ -61,8 +61,8 @@ public class ProcurementController {
 
     @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER')")
     @PutMapping(AppPath.REJECT_PROCUREMENT)
-    public ResponseEntity<?> rejectProcurement(@RequestBody ProcurementDetailRequest procurementDetailRequest, @RequestHeader("Authorization") String authorization) {
-        ProcurementResponse procurementResponse = procurementService.rejectProcurement(procurementDetailRequest, authorization);
+    public ResponseEntity<?> rejectProcurement(@RequestBody ProcurementApprovalRequest procurementApprovalRequest, @RequestHeader("Authorization") String authorization) {
+        ProcurementResponse procurementResponse = procurementService.rejectProcurement(procurementApprovalRequest, authorization);
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body(CommonResponse.<ProcurementResponse>builder()
@@ -75,8 +75,8 @@ public class ProcurementController {
 
     @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_EMPLOYEE')")
     @PutMapping(AppPath.CANCEL_PROCUREMENT)
-    public ResponseEntity<?> cancelProcurement(@RequestBody ProcurementDetailRequest procurementDetailRequest) {
-        ProcurementResponse procurementResponse = procurementService.cancelProcurement(procurementDetailRequest);
+    public ResponseEntity<?> cancelProcurement(@RequestBody ProcurementApprovalRequest procurementApprovalRequest) {
+        ProcurementResponse procurementResponse = procurementService.cancelProcurement(procurementApprovalRequest);
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body(CommonResponse.<ProcurementResponse>builder()

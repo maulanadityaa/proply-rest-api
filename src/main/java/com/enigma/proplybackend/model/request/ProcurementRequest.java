@@ -16,4 +16,6 @@ public class ProcurementRequest {
     private String userId;
     private String procurementCategoryId;
     private List<ProcurementDetailRequest> procurementDetailRequests;
+    private List<ApprovalRequest> approvalRequests;
+    private Integer level;
 }

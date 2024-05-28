@@ -9,7 +9,6 @@ public class DbPath {
     public static final String ITEM_SCHEMA = "mst_items";
     public static final String ITEM_CATEGORY_SCHEMA = "mst_item_categories";
     public static final String PROCUREMENT_CATEGORY_SCHEMA = "mst_procurement_categories";
-    public static final String PROCUREMENT_STATUS_SCHEMA = "mst_procurement_status";
     public static final String PROCUREMENT_SCHEMA = "trx_procurements";
     public static final String PROCUREMENT_DETAIL_SCHEMA = "trx_procurement_details";
     public static final String APPROVAL_SCHEMA = "trx_approvals";
