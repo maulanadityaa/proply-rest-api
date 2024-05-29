@@ -93,19 +93,22 @@ public class ProcurementServiceImpl implements ProcurementService {
 
         List<ProcurementDetailResponse> procurementDetailResponses = procurementRequest.getProcurementDetailRequests().stream().map(
                 procurementDetailRequest -> {
-                    ItemResponse itemResponse = itemService.getItemById(procurementDetailRequest.getItemId());
-                    Item item = Item.builder()
-                            .id(itemResponse.getItemId())
-                            .name(itemResponse.getName())
-                            .itemCategory(ItemCategory.builder()
-                                    .id(itemResponse.getItemCategoryResponse().getItemCategoryId())
-                                    .name(itemResponse.getItemCategoryResponse().getName())
-                                    .isActive(itemResponse.getItemCategoryResponse().getIsActive())
-                                    .build())
-                            .createdAt(itemResponse.getCreatedAt())
-                            .updatedAt(itemResponse.getUpdatedAt())
-                            .build();
-                    System.out.println(procurementDetailRequest.getQuantity());
+                    Item item = null;
+                    ItemResponse itemResponse = null;
+                    if (procurementDetailRequest.getItemId() != null) {
+                        itemResponse = itemService.getItemById(procurementDetailRequest.getItemId());
+                        item = Item.builder()
+                                .id(itemResponse.getItemId())
+                                .name(itemResponse.getName())
+                                .itemCategory(ItemCategory.builder()
+                                        .id(itemResponse.getItemCategoryResponse().getItemCategoryId())
+                                        .name(itemResponse.getItemCategoryResponse().getName())
+                                        .isActive(itemResponse.getItemCategoryResponse().getIsActive())
+                                        .build())
+                                .createdAt(itemResponse.getCreatedAt())
+                                .updatedAt(itemResponse.getUpdatedAt())
+                                .build();
+                    }
 
                     ProcurementDetail procurementDetail = ProcurementDetail.builder()
                             .procurement(procurement)
