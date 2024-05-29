@@ -23,11 +23,11 @@ import java.util.List;
 @RestController
 @RequestMapping(AppPath.DIVISIONS)
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('ROLE_ADMIN')")
 public class DivisionController {
     private final DivisionService divisionService;
 
     @PostMapping
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<?> addDivision(@RequestBody DivisionRequest divisionRequest) {
         DivisionResponse divisionResponse = divisionService.addDivision(divisionRequest);
 
@@ -39,6 +39,7 @@ public class DivisionController {
     }
 
     @PutMapping
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<?> updateDivision(@RequestBody DivisionRequest divisionRequest) {
         DivisionResponse divisionResponse = divisionService.updateDivision(divisionRequest);
 
@@ -50,6 +51,7 @@ public class DivisionController {
     }
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_EMPLOYEE')")
     public ResponseEntity<?> getAllDivision() {
         List<DivisionResponse> divisionResponses = divisionService.getAllDivisions();
 
@@ -61,6 +63,7 @@ public class DivisionController {
     }
 
     @GetMapping(AppPath.ACTIVE_STATUS)
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_EMPLOYEE')")
     public ResponseEntity<?> getAllActiveDivision() {
         List<DivisionResponse> divisionResponses = divisionService.getAllDivisionsWhereActive();
 
@@ -83,6 +86,7 @@ public class DivisionController {
     }
 
     @DeleteMapping(AppPath.DELETE_BY_ID)
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<?> deleteDivision(@PathVariable String id) {
         divisionService.deleteDivision(id);
 

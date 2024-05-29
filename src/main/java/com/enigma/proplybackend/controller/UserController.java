@@ -27,7 +27,7 @@ import java.util.List;
 public class UserController {
     private final UserService userService;
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_EMPLOYEE')")
     @GetMapping
     public ResponseEntity<?> getAllUsers() {
         List<UserResponse> userResponses = userService.getAllUsers();
@@ -40,7 +40,7 @@ public class UserController {
                         .build());
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_EMPLOYEE')")
     @GetMapping(AppPath.ACTIVE_STATUS)
     public ResponseEntity<?> getAllActiveUsers() {
         List<UserResponse> userResponses = userService.getAllUserWhereActive();
