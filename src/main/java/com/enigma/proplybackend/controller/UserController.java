@@ -27,7 +27,7 @@ import java.util.List;
 public class UserController {
     private final UserService userService;
 
-    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_EMPLOYEE')")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_EMPLOYEE', 'ROLE_MANAGER')")
     @GetMapping
     public ResponseEntity<?> getAllUsers() {
         List<UserResponse> userResponses = userService.getAllUsers();
@@ -40,7 +40,7 @@ public class UserController {
                         .build());
     }
 
-    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_EMPLOYEE')")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_EMPLOYEE', 'ROLE_MANAGER')")
     @GetMapping(AppPath.ACTIVE_STATUS)
     public ResponseEntity<?> getAllActiveUsers() {
         List<UserResponse> userResponses = userService.getAllUserWhereActive();
@@ -53,7 +53,7 @@ public class UserController {
                         .build());
     }
 
-    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_EMPLOYEE')")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_EMPLOYEE', 'ROLE_MANAGER')")
     @GetMapping(AppPath.GET_BY_ID)
     public ResponseEntity<?> getUserById(@PathVariable String id) {
         UserResponse userResponse = userService.getUserById(id);
@@ -67,7 +67,7 @@ public class UserController {
                 );
     }
 
-    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_EMPLOYEE')")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_EMPLOYEE', 'ROLE_MANAGER')")
     @PostMapping(AppPath.GET_BY_EMAIL)
     public ResponseEntity<?> getUserByEmail(@RequestBody UserRequest userRequest) {
         UserResponse userResponse = userService.getUserByEmail(userRequest.getEmail());
@@ -81,7 +81,7 @@ public class UserController {
                 );
     }
 
-    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_EMPLOYEE')")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_EMPLOYEE', 'ROLE_MANAGER')")
     @PutMapping
     public ResponseEntity<?> updateUser(@ModelAttribute UserRequest userRequest) {
         UserResponse userResponse = userService.updateUser(userRequest);

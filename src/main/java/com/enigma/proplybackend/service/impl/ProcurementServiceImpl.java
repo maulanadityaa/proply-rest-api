@@ -196,7 +196,10 @@ public class ProcurementServiceImpl implements ProcurementService {
 
         List<ProcurementDetailResponse> procurementDetailResponses = procurement.getProcurementDetails().stream().map(
                 procurementDetail -> {
-                    ItemResponse itemResponse = itemService.getItemById(procurementDetail.getItem().getId());
+                    ItemResponse itemResponse = null;
+                    if (procurementDetail.getItem() != null) {
+                        itemResponse = itemService.getItemById(procurementDetail.getItem().getId());
+                    }
 
                     ProcurementDetail existProcurementDetail = procurementDetailService.getProcurementDetailById(procurementDetail.getId());
 
