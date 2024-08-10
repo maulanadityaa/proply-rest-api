@@ -5,6 +5,7 @@ import com.enigma.proplybackend.model.request.UserRequest;
 import com.enigma.proplybackend.model.response.CommonResponse;
 import com.enigma.proplybackend.model.response.UserResponse;
 import com.enigma.proplybackend.service.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -69,7 +70,7 @@ public class UserController {
 
     @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_EMPLOYEE', 'ROLE_MANAGER')")
     @PostMapping(AppPath.GET_BY_EMAIL)
-    public ResponseEntity<?> getUserByEmail(@RequestBody UserRequest userRequest) {
+    public ResponseEntity<?> getUserByEmail(@Valid @RequestBody UserRequest userRequest) {
         UserResponse userResponse = userService.getUserByEmail(userRequest.getEmail());
 
         return ResponseEntity.status(HttpStatus.OK)
@@ -83,7 +84,7 @@ public class UserController {
 
     @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_EMPLOYEE', 'ROLE_MANAGER')")
     @PutMapping
-    public ResponseEntity<?> updateUser(@ModelAttribute UserRequest userRequest) {
+    public ResponseEntity<?> updateUser(@Valid @ModelAttribute UserRequest userRequest) {
         UserResponse userResponse = userService.updateUser(userRequest);
 
         return ResponseEntity.status(HttpStatus.OK)

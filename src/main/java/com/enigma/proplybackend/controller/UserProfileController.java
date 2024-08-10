@@ -5,6 +5,7 @@ import com.enigma.proplybackend.model.request.UserProfileRequest;
 import com.enigma.proplybackend.model.response.CommonResponse;
 import com.enigma.proplybackend.model.response.UserProfileResponse;
 import com.enigma.proplybackend.service.UserProfileService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,7 +23,7 @@ public class UserProfileController {
     private final UserProfileService userProfileService;
 
     @PostMapping
-    public ResponseEntity<?> updateProfileImage(@ModelAttribute UserProfileRequest userProfileRequest) {
+    public ResponseEntity<?> updateProfileImage(@Valid @ModelAttribute UserProfileRequest userProfileRequest) {
         UserProfileResponse userProfileResponse = userProfileService.uploadImage(userProfileRequest);
 
         return ResponseEntity.status(HttpStatus.OK)

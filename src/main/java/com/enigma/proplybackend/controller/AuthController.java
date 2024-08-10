@@ -9,6 +9,7 @@ import com.enigma.proplybackend.model.response.MailResponse;
 import com.enigma.proplybackend.model.response.RegisterResponse;
 import com.enigma.proplybackend.service.AuthService;
 import com.enigma.proplybackend.service.MailSenderService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,7 +29,7 @@ public class AuthController {
     private final MailSenderService mailSenderService;
 
     @PostMapping(AppPath.REGISTER_ADMIN)
-    public ResponseEntity<?> registerAdmin(@RequestBody AuthRequest authRequest) {
+    public ResponseEntity<?> registerAdmin(@Valid @RequestBody AuthRequest authRequest) {
         RegisterResponse registerResponse = authService.registerAdmin(authRequest);
 
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -42,7 +43,7 @@ public class AuthController {
 
     @PostMapping(AppPath.REGISTER_MANAGER)
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<?> registerManager(@RequestBody AuthRequest authRequest) {
+    public ResponseEntity<?> registerManager(@Valid @RequestBody AuthRequest authRequest) {
         RegisterResponse registerResponse = authService.registerManager(authRequest);
 
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -56,7 +57,7 @@ public class AuthController {
 
     @PostMapping(AppPath.REGISTER_EMPLOYEE)
     @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER')")
-    public ResponseEntity<?> registerEmployee(@RequestBody AuthRequest authRequest, @RequestHeader("Authorization") String authorization) {
+    public ResponseEntity<?> registerEmployee(@Valid @RequestBody AuthRequest authRequest, @RequestHeader("Authorization") String authorization) {
         RegisterResponse registerResponse = authService.registerEmployee(authRequest, authorization);
 
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -69,7 +70,7 @@ public class AuthController {
     }
 
     @PostMapping(AppPath.LOGIN)
-    public ResponseEntity<?> login(@RequestBody AuthRequest authRequest) {
+    public ResponseEntity<?> login(@Valid @RequestBody AuthRequest authRequest) {
         LoginResponse loginResponse = authService.login(authRequest);
 
         return ResponseEntity.status(HttpStatus.OK)
@@ -82,7 +83,7 @@ public class AuthController {
     }
 
     @PostMapping(AppPath.RESET_PASSWORD)
-    public ResponseEntity<?> resetPassword(@RequestBody MailRequest mailRequest) {
+    public ResponseEntity<?> resetPassword(@Valid @RequestBody MailRequest mailRequest) {
         MailResponse mailResponse = authService.resetPassword(mailRequest.getTo());
 
         return ResponseEntity.status(HttpStatus.OK)
